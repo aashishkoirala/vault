@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Vault : Vault - a personal encryption tool" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Vault</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/aashishkoirala/vault">View on GitHub</a>
+
+          <h1 id="project_title">Vault</h1>
+          <h2 id="project_tagline">Vault - a personal encryption tool</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/aashishkoirala/vault/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/aashishkoirala/vault/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h2>
+<a name="vault" class="anchor" href="#vault"><span class="octicon octicon-link"></span></a>Vault</h2>
+
+<h5>
+<a name="by-aashish-koirala" class="anchor" href="#by-aashish-koirala"><span class="octicon octicon-link"></span></a>By <a href="http://aashishkoirala.github.io">Aashish Koirala</a>
+</h5>
+
+<p>Vault is a command-line tool that lets you encrypt and decrypt your sensitive files. I built it for my use as I wanted to put my files up in the cloud but did not trust any cloud provider with my data in the open. With this, I feel confident putting all my stuff up on Dropbox (yes, the one that was recently hacked).</p>
+
+<h5>
+<a name="how-it-works" class="anchor" href="#how-it-works"><span class="octicon octicon-link"></span></a>How It Works</h5>
+
+<p>The encryption is done using the following parameters:</p>
+
+<ul>
+<li>
+<strong>Algorithm</strong>: Advanced Encryption Standard (AES)</li>
+<li>
+<strong>Key Size</strong>: 256 bits</li>
+<li>
+<strong>Block Cipher Mode</strong>: Cipher Block Chaining (CBC)</li>
+<li>
+<strong>Initialization Vector Size:</strong> 128 bits</li>
+<li>
+<strong>Padding</strong>: PKCS7</li>
+</ul><p>The encryption process for each file works as follows:</p>
+
+<ul>
+<li>The full file path is lowercased and the name's 256-bit SHA1 hash is calculated. The hex string version of this with a ".vault" extension becomes the name of the encrypted file.</li>
+<li>A cryptographically random sequence of non-zero bytes is generated to create the initialization vector.</li>
+<li>The full path of the file is BASE64 encoded.</li>
+<li>The following are then written to the output file in sequence:
+
+<ul>
+<li>The length of the BASE64 encoded filename.</li>
+<li>The BASE64 encoded filename.</li>
+<li>The initialization vector.</li>
+<li>The encrypted data.</li>
+</ul>
+</li>
+</ul><p>The decryption process, of course, works in reverse.</p>
+
+<p>I did not want the added overhead of maintaining and protecting an encryption key - so I decided to make it a function of some other pieces of information that only I would be able to come up with. Not at all acceptable for an enterprise solution, but I think it works for a personal encryptor and it works for me. During encryption/decryption, it asks me for:</p>
+
+<ul>
+<li>My full name</li>
+<li>My date of birth</li>
+<li>My social security number</li>
+<li>A secret passphrase</li>
+</ul><p>It then combines these values and calculates the 256-bit SHA1 hash of the result - which becomes the encryption key.</p>
+
+<h5>
+<a name="configuration" class="anchor" href="#configuration"><span class="octicon octicon-link"></span></a>Configuration</h5>
+
+<p>You have to configure two values in <em>vault.exe.config</em>:</p>
+
+<pre><code>&lt;appSettings&gt;
+    &lt;add key="EncryptedFileLocation" value="encrypted_file_location"/&gt;
+    &lt;add key="DecryptedFileLocation" value="decrypted_file_location"/&gt;
+&lt;/appSettings&gt;
+</code></pre>
+
+<p>Where:</p>
+
+<p><em>encrypted_file_location:</em> The folder where you want to keep all your encrypted files. This needs to be one folder where everything goes, and can be sync'ed with your favorite cloud storage.</p>
+
+<p><em>decrypted_file_location:</em> The folder that is used as a temporary workspace to place decrypted file and folder structure in as you're working with a set of files.</p>
+
+<h5>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h5>
+
+<p><strong>vault</strong> [<strong>launch</strong>]</p>
+
+<p>Launches the interactive console application. Once you have some files in your encrypted location, the interactive application lets you browse through the folder tree and decrypt and launch selected files as needed, making consuming encrypted files a tad easier.</p>
+
+<p><strong>vault list</strong></p>
+
+<p>Displays a tree-type list of all files that are in the encrypted file location, by folder hierarchy.</p>
+
+<p><strong>vault find</strong> <em>original_file_full_path</em></p>
+
+<p>Checks to see if the file has been encrypted and is in the encrypted file location. If so, gives you the name of the encrypted file.</p>
+
+<p><em>Example:</em></p>
+
+<pre><code>vault find C:\Aashish\Text\TechRef\Domain_Driven_Design.pdf
+</code></pre>
+
+<p><strong>vault encrypt</strong> <em>filepattern1</em> [<em>filepattern2</em>] [<em>filepattern3</em>] <code>...</code></p>
+
+<p>Encrypts the files and puts the encrypted files in the encrypted file location. A file pattern can be the full path for a file, the full path for a folder, or a folder path with a wild card representing multiple files. You can specify multiple file patterns.</p>
+
+<p><em>Example:</em></p>
+
+<pre><code>vault encrypt C:\Aashish\Text\TechRef\*.pdf "C:\Aashish\Data\Secret Stuff\*.xlsx"
+</code></pre>
+
+<p><strong>vault decrypt</strong> <em>filepattern1</em> [<em>filepattern2</em>] [<em>filepattern3</em>] <code>...</code></p>
+
+<p>Decrypts the given files and puts them in the configured decrypted file location. The file patterns in this case need to be relative to the configured encrypted file location.</p>
+
+<p><em>Example:</em></p>
+
+<pre><code>vault decrypt 2342389234ABEF02340ABC203482300DE234023EF02340ABC20348F0234348F0.vault
+</code></pre>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Vault maintained by <a href="https://github.com/aashishkoirala">aashishkoirala</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
