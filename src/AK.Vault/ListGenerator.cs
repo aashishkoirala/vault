@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 #endregion
 
@@ -63,10 +64,14 @@ namespace AK.Vault
 
         public FolderEntry Generate()
         {
-            var fileMap = Directory
+            var files = Directory
                 .GetFiles(this.configurationProvider.EncryptedFileLocation, "*.vault", SearchOption.TopDirectoryOnly)
-                .Select(x => new {Original = this.ExtractFileName(x), Encrypted = x})
-                .ToDictionary(x => x.Original, x => x.Encrypted);
+                .Select(x => new FileNameInfo {Original = string.Empty, Encrypted = x})
+                .ToArray();
+
+            Parallel.ForEach(files, x => x.Original = this.ExtractFileName(x.Encrypted));
+
+            var fileMap = files.ToDictionary(x => x.Original, x => x.Encrypted);
 
             var folderEntryMap = new Dictionary<string, FolderEntry>();
 
@@ -128,6 +133,12 @@ namespace AK.Vault
         {
             using (var stream = File.OpenRead(encryptedFile))
                 return this.fileNameManager.ReadOriginalFileNameFromStream(stream);
+        }
+
+        private class FileNameInfo
+        {
+            public string Encrypted { get; set; }
+            public string Original { get; set; }
         }
     }
 }
