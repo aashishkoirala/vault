@@ -64,6 +64,8 @@ namespace AK.Vault.Console
         {
             try
             {
+                Screen.Print();
+                Screen.Print("Launching application...");
                 this.launcher.Run();
                 return true;
             }
