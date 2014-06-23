@@ -208,7 +208,7 @@ namespace AK.Vault.Console
                     LaunchPath(path);
                     break;
                 }
-                if (keyInfo.KeyChar == '2' && this.selectedMenuItem.IsFolder)
+                if (keyInfo.KeyChar == '2' && !this.selectedMenuItem.IsFolder)
                 {
                     LaunchPath(Path.GetDirectoryName(path));
                     break;
