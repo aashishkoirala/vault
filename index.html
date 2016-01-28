@@ -95,15 +95,29 @@
 						</div>
 						<div class="tab-pane" id="configuration_tab">
 							<h5>Configuration</h5>
-							You have to configure two values in <i>vault.exe.config</i>:<br/><br/>
+							You can configure up to 36 vaults. A good use case for multiple vaults is if you are syncing each vault to a different cloud storage provider. You configure vaults in <i>vault.exe.config</i>:<br/><br/>
 <pre>
-&lt;appSettings&gt;
-	&lt;add key="EncryptedFileLocation" value="<i>encrypted_file_location</i>"/&gt;
-	&lt;add key="DecryptedFileLocation" value="</i>decrypted_file_location</i>"/&gt;
-&lt;/appSettings&gt;</pre><br/>
+&lt;ak.vault&gt;
+	&lt;vaultConfiguration&gt;
+	  &lt;vaults&gt;
+		&lt;vault name=&quot;vault_name&quot; 
+			encryptedFileLocation=&quot;encrypted_file_location&quot; 
+			decryptedFileLocation=&quot;decrypted_file_location&quot; /&gt;
+		&lt;vault name=&quot;vault_name&quot; 
+			encryptedFileLocation=&quot;encrypted_file_location&quot; 
+			decryptedFileLocation=&quot;decrypted_file_location&quot; /&gt;
+		&lt;vault name=&quot;vault_name&quot; 
+			encryptedFileLocation=&quot;encrypted_file_location&quot; 
+			decryptedFileLocation=&quot;decrypted_file_location&quot; /&gt;
+		...
+	  &lt;/vaults&gt;
+	&lt;/vaultConfiguration&gt;
+&lt;/ak.vault&gt;
+</pre><br/>
 							Where:<br/><br/>
-							<i>encrypted_file_location:</i> The folder where you want to keep all your encrypted files. This needs to be one folder where everything goes, and can be sync'ed with your favorite cloud storage.<br/><br/>
-							<i>decrypted_file_location:</i> The folder that is used as a temporary workspace to place decrypted file and folder structure in as you're working with a set of files.<br/><br/>
+							<i>vault_name</i>: A unique name to identify the vault. This must be unique for each vault, and the application will ask you to pick a vault before you do anything.<br/><br/>
+							<i>encrypted_file_location</i>: The folder where you want to keep all your encrypted files for this vault. This needs to be one folder where everything goes, and can be sync'ed with your favorite cloud storage.<br/><br/>
+							<i>decrypted_file_location</i>: The folder that is used as a temporary workspace to place decrypted file and folder structure in as you're working with a set of files. You could use a different one per vault or the same one for all vaults.<br/><br/>
 						</div>
 						<div class="tab-pane" id="usage_tab">
 							<h5>Usage</h5>
@@ -113,6 +127,9 @@
 							<b>vault list</b><br/>
 							Displays a tree-type list of all files that are in the encrypted file location, by folder hierarchy.<br/><br/>
 
+							<b>vault report</b><br/>
+							Displays a tabular report of all files that are in the encrypted file location, with the original and the encrypted name.<br/><br/>
+							
 							<b>vault find</b> <i>original_file_full_path</i><br/>
 							Checks to see if the file has been encrypted and is in the encrypted file location. If so, gives you the name of the encrypted file.<br/><br/>
 							Example:<br/>
@@ -126,8 +143,12 @@
 							<b>vault decrypt</b> <i>filepattern1</i> [<i>filepattern2</i>] [</i>filepattern3</i>] <code>...</code><br/>
 							Decrypts the given files and puts them in the configured decrypted file location. The file patterns in this case need to be relative to the configured encrypted file location.<br/><br/>
 							Example:<br/>
-							<code>vault decrypt 2342389234ABEF02340ABC203482300DE234023EF02340ABC20348F0234348F0.vault</code>
-							<br/><br/>
+							<code>vault decrypt 2342389234ABEF02340ABC203482300DE234023EF02340ABC20348F0234348F0.vault</code><br/><br/>
+							
+							<b>vault fd</b> <i>original_file1_full_path</i> [<i>original_file2_full_path</i>] <code>...</code><br/>
+							Checks to see if the file has been encrypted and is in the encrypted file location. If so, decrypts the files.<br/><br/>
+							Example:<br/>
+							<code>vault fd C:\Aashish\Text\TechRef\Domain_Driven_Design.pdf</code><br/><br/>
 						</div>
 						<div class="tab-pane" id="tos_tab">
 							<h5>Terms of Use</h5>
