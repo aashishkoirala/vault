@@ -1,6 +1,6 @@
 ﻿/*******************************************************************************************************************************
  * AK.Vault.Console.LaunchCommand
- * Copyright © 2014 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
  * 
  * This file is part of VAULT.
  *  
@@ -47,18 +47,12 @@ namespace AK.Vault.Console
         public override void AssignEncryptionKeyInput(EncryptionKeyInput encryptionKeyInput)
         {
             base.AssignEncryptionKeyInput(encryptionKeyInput);
-            this.launcher = new Launcher(this.FileEncryptor, Factory.ListGenerator);
+            this.launcher = new Launcher(this.FileEncryptor, Factory.ListGenerator, this.VaultName);
         }
 
-        protected override bool PromptAfterEnd
-        {
-            get { return false; }
-        }
+        protected override bool PromptAfterEnd => false;
 
-        protected override bool PromptBeforeStart
-        {
-            get { return false; }
-        }
+        protected override bool PromptBeforeStart => false;
 
         protected override bool ExecuteCommand(ICollection<Exception> exceptions)
         {

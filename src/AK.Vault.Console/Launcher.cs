@@ -1,6 +1,6 @@
 ﻿/*******************************************************************************************************************************
  * AK.Vault.Console.Launcher
- * Copyright © 2014 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
  * 
  * This file is part of VAULT.
  *  
@@ -52,10 +52,10 @@ namespace AK.Vault.Console
         private SelectableMenuItem selectedMenuItem;
         private bool isRunning = true;
 
-        public Launcher(IFileEncryptor fileEncryptor, IListGenerator listGenerator)
+        public Launcher(IFileEncryptor fileEncryptor, IListGenerator listGenerator, string vaultName)
         {
             this.fileEncryptor = fileEncryptor;
-            this.currentFolder = listGenerator.Generate();
+            this.currentFolder = listGenerator.Generate(vaultName);
             this.executableMenu = this.BuildExecutableMenu();
         }
 
@@ -104,7 +104,7 @@ namespace AK.Vault.Console
                     .Skip(this.itemIndex)
                     .Take(ItemsPerPage)
                     .Select(x => x is FileEntry
-                                     ? new SelectableMenuItem(x as FileEntry)
+                                     ? new SelectableMenuItem((FileEntry) x)
                                      : new SelectableMenuItem(x as FolderEntry))
                     .Select((x, i) => new {Key = MenuKeyChars[i], Value = x})
                     .ToDictionary(x => x.Key, x => x.Value);
@@ -170,7 +170,7 @@ namespace AK.Vault.Console
 
                 System.Console.Write("  ");
                 Screen.Print(foreColor, backColor, " {0} - {1} ", key,
-                             item.IsFolder ? string.Format("[{0}]", item.FolderEntry.Name) : item.FileEntry.Name);
+                             item.IsFolder ? $"[{item.FolderEntry.Name}]" : item.FileEntry.Name);
             }
 
             Screen.Print();
@@ -311,33 +311,21 @@ namespace AK.Vault.Console
 
     internal class SelectableMenuItem
     {
-        private readonly FolderEntry folderEntry;
-        private readonly FileEntry fileEntry;
-
         public SelectableMenuItem(FolderEntry folderEntry)
         {
-            this.folderEntry = folderEntry;
+            this.FolderEntry = folderEntry;
         }
 
         public SelectableMenuItem(FileEntry fileEntry)
         {
-            this.fileEntry = fileEntry;
+            this.FileEntry = fileEntry;
         }
 
-        public FileEntry FileEntry
-        {
-            get { return this.fileEntry; }
-        }
+        public FileEntry FileEntry { get; }
 
-        public FolderEntry FolderEntry
-        {
-            get { return this.folderEntry; }
-        }
+        public FolderEntry FolderEntry { get; }
 
-        public bool IsFolder
-        {
-            get { return this.folderEntry != null; }
-        }
+        public bool IsFolder => this.FolderEntry != null;
     }
 
     internal class ExecutableMenuItem
@@ -352,12 +340,9 @@ namespace AK.Vault.Console
             this.showIf = showIf;
         }
 
-        public string Name { get; private set; }
+        public string Name { get; }
 
-        public bool Visible
-        {
-            get { return this.showIf(); }
-        }
+        public bool Visible => this.showIf();
 
         public void Execute()
         {

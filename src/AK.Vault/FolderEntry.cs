@@ -1,6 +1,6 @@
 ﻿/*******************************************************************************************************************************
  * AK.Vault.FolderEntry
- * Copyright © 2014 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
  * 
  * This file is part of VAULT.
  *  

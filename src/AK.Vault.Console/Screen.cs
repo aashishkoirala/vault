@@ -1,6 +1,6 @@
 ﻿/*******************************************************************************************************************************
  * AK.Vault.Console.Screen
- * Copyright © 2014 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
  * 
  * This file is part of VAULT.
  *  
@@ -91,15 +91,9 @@ namespace AK.Vault.Console
             public const ConsoleColor Normal = ConsoleColor.Gray;
             public const ConsoleColor Error = ConsoleColor.Red;
 
-            public static ConsoleColor CurrentForeground
-            {
-                get { return Con.ForegroundColor; }
-            }
+            public static ConsoleColor CurrentForeground => Con.ForegroundColor;
 
-            public static ConsoleColor CurrentBackground
-            {
-                get { return Con.BackgroundColor; }
-            }
+            public static ConsoleColor CurrentBackground => Con.BackgroundColor;
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿/*******************************************************************************************************************************
  * AK.Vault.Console.FindCommand
- * Copyright © 2014 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
  * 
  * This file is part of VAULT.
  *  
@@ -41,28 +41,31 @@ namespace AK.Vault.Console
     {
         private string fileToFind;
 
+        public Action<string> FileFound { get; set; }
+
         public override bool AssignParameters(string[] args)
         {
             this.fileToFind = args.FirstOrDefault();
             return !string.IsNullOrWhiteSpace(this.fileToFind);
         }
 
-        protected override bool PromptAfterEnd
-        {
-            get { return false; }
-        }
+        protected override bool PromptAfterEnd => false;
 
-        protected override bool PromptBeforeStart
-        {
-            get { return false; }
-        }
+        protected override bool PromptBeforeStart => false;
 
         protected override bool ExecuteCommand(ICollection<Exception> exceptions)
         {
-            var encryptedName = Factory.FileNameManager.GenerateNameForEncryptedFile(this.fileToFind);
-            var fullPath = Path.Combine(Factory.ConfigurationProvider.EncryptedFileLocation, encryptedName);
+            var encryptedFileLocation = Factory.ConfigurationProvider.Configuration.Vaults
+                .Single(x => x.Name == this.VaultName).EncryptedFileLocation;
 
-            Screen.Print(File.Exists(fullPath) ? fullPath : "Not found.");
+            var encryptedName = Factory.FileNameManager.GenerateNameForEncryptedFile(this.fileToFind);
+            var fullPath = Path.Combine(encryptedFileLocation, encryptedName);
+
+            fullPath = File.Exists(fullPath) ? fullPath : null;
+            Screen.Print(fullPath ?? "Not found.");
+
+            if (fullPath != null) this.FileFound?.Invoke(fullPath);
+
             return true;
         }
     }

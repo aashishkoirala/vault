@@ -1,6 +1,6 @@
 ﻿/*******************************************************************************************************************************
  * AK.Vault.Console.CommandInfoAttribute
- * Copyright © 2014 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
  * 
  * This file is part of VAULT.
  *  
@@ -48,7 +48,7 @@ namespace AK.Vault.Console
     /// MEF metadata attribute that implements ICommandInfo and should be applied
     /// to ICommand instances.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Class)]
     [MetadataAttribute]
     internal class CommandInfoAttribute : Attribute, ICommandInfo
     {
@@ -58,7 +58,7 @@ namespace AK.Vault.Console
             this.RequiresEncryptionKeyInput = requiresEncryptionKeyInput;
         }
 
-        public string CommandName { get; private set; }
-        public bool RequiresEncryptionKeyInput { get; private set; }
+        public string CommandName { get; }
+        public bool RequiresEncryptionKeyInput { get; }
     }
 }

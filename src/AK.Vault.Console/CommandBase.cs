@@ -1,6 +1,6 @@
 ﻿/*******************************************************************************************************************************
  * AK.Vault.Console.CommandBase
- * Copyright © 2014 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
  * 
  * This file is part of VAULT.
  *  
@@ -41,21 +41,17 @@ namespace AK.Vault.Console
     {
         protected IFileEncryptor FileEncryptor;
 
-        protected virtual bool PromptBeforeStart
-        {
-            get { return true; }
-        }
+        protected virtual bool PromptBeforeStart => true;
 
-        protected virtual bool PromptAfterEnd
-        {
-            get { return true; }
-        }
+        protected virtual bool PromptAfterEnd => true;
 
         public abstract bool AssignParameters(string[] args);
 
+        public virtual string VaultName { get; set; }
+
         public virtual void AssignEncryptionKeyInput(EncryptionKeyInput encryptionKeyInput)
         {
-            this.FileEncryptor = Factory.CreateFileEncryptor(encryptionKeyInput);
+            this.FileEncryptor = Factory.CreateFileEncryptor(encryptionKeyInput, this.VaultName);
             this.FileEncryptor.UpdateMessageAction =
                 message =>
                 Screen.Print(message.IsError ? Screen.Colors.Error : Screen.Colors.Normal, message.Description);
@@ -90,7 +86,7 @@ namespace AK.Vault.Console
                 var errorLog = Path.Combine(Path.GetDirectoryName(
                     Assembly.GetExecutingAssembly().Location) ?? string.Empty, "Error.log");
 
-                var dashes = string.Format("{0}{1}", new string('-', 50), Environment.NewLine);
+                var dashes = $"{new string('-', 50)}{Environment.NewLine}";
                 File.WriteAllText(errorLog, dashes);
                 foreach (var ex in exceptions)
                 {

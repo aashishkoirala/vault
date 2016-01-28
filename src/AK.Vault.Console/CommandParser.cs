@@ -1,6 +1,6 @@
 ﻿/*******************************************************************************************************************************
  * AK.Vault.Console.CommandParser
- * Copyright © 2014 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
  * 
  * This file is part of VAULT.
  *  
@@ -25,6 +25,7 @@ using System;
 using System.ComponentModel.Composition.Hosting;
 using System.Linq;
 using System.Reflection;
+using AK.Vault.Configuration;
 
 #endregion
 
@@ -71,9 +72,10 @@ namespace AK.Vault.Console
                 if (args.Length == 0) args = new[] {"launch"};
 
                 var commandName = args[0];
-                var assembly = Assembly.GetExecutingAssembly();
-                using (var assemblyCatalog = new AssemblyCatalog(assembly))
-                using (var container = new CompositionContainer(assemblyCatalog))
+                var assemblies = new[] {Assembly.GetExecutingAssembly(), typeof (IConfigurationProvider).Assembly};
+
+                using (var catalog = new AggregateCatalog(assemblies.Select(x => new AssemblyCatalog(x))))
+                using (var container = new CompositionContainer(catalog))
                 {
                     var export = container
                         .GetExports<ICommand, ICommandInfo>()
@@ -95,13 +97,17 @@ namespace AK.Vault.Console
                         return false;
                     }
 
-                    if (export.Metadata.RequiresEncryptionKeyInput)
-                    {
-                        bool cancelled;
-                        var encryptionKeyInput = EncryptionKeyInputPrompter.Prompt(out cancelled);
-                        if (cancelled) return false;
-                        command.AssignEncryptionKeyInput(encryptionKeyInput);
-                    }
+                    bool cancelled;
+                    var vaultName = VaultPrompter.Prompt(Factory.ConfigurationProvider, out cancelled);
+                    if (cancelled) return false;
+                    command.VaultName = vaultName;
+                    Screen.Clear();
+
+                    if (!export.Metadata.RequiresEncryptionKeyInput) return true;
+
+                    var encryptionKeyInput = EncryptionKeyInputPrompter.Prompt(out cancelled);
+                    if (cancelled) return false;
+                    command.AssignEncryptionKeyInput(encryptionKeyInput);
 
                     return true;
                 }
@@ -133,11 +139,21 @@ namespace AK.Vault.Console
             Screen.Print("\tvault find filename");
             Screen.Print("\t\tChecks to see if the file is in the vault and gives you the encrypted filename if it does.");
             Screen.Print();
+            Screen.Print("\tvault fd filename1 [filename2] [filename3] ...");
+            Screen.Print("\t\tPerforms a \"find\" on each file, and if found, decrypts it.");
+            Screen.Print();
+            Screen.Print("\tvault report");
+            Screen.Print("\t\tSpits out a tabular report of all files in the vault with their encrypted names.");
+            Screen.Print();
         }
 
         private class DoNothingCommand : ICommand
         {
-            public void AssignEncryptionKeyInput(EncryptionKeyInput encryptionKeyInput) {}
+            public string VaultName { get; set; }
+
+            public void AssignEncryptionKeyInput(EncryptionKeyInput encryptionKeyInput)
+            {
+            }
 
             public bool AssignParameters(string[] args)
             {

@@ -1,6 +1,6 @@
 ﻿/*******************************************************************************************************************************
  * AK.Vault.ListGenerator
- * Copyright © 2014 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
  * 
  * This file is part of VAULT.
  *  
@@ -24,9 +24,11 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using AK.Vault.Configuration;
 
 #endregion
 
@@ -43,8 +45,9 @@ namespace AK.Vault
         /// Generates the tree and returns the FolderEntry object representing the
         /// root that can be used to traverse down to everything else.
         /// </summary>
+        /// <param name="vaultName">Vault name.</param>
         /// <returns></returns>
-        FolderEntry Generate();
+        FolderEntry Generate(string vaultName);
     }
 
     [Export(typeof (IListGenerator)), PartCreationPolicy(CreationPolicy.Shared)]
@@ -62,10 +65,13 @@ namespace AK.Vault
             this.configurationProvider = configurationProvider;
         }
 
-        public FolderEntry Generate()
+        public FolderEntry Generate(string vaultName)
         {
+            var encryptedFileLocation = this.configurationProvider.Configuration.Vaults
+                .Single(x => x.Name == vaultName).EncryptedFileLocation;
+
             var files = Directory
-                .GetFiles(this.configurationProvider.EncryptedFileLocation, "*.vault", SearchOption.TopDirectoryOnly)
+                .GetFiles(encryptedFileLocation, "*.vault", SearchOption.TopDirectoryOnly)
                 .Select(x => new FileNameInfo {Original = string.Empty, Encrypted = x})
                 .ToArray();
 
@@ -78,11 +84,7 @@ namespace AK.Vault
             foreach (var file in fileMap.Keys.OrderBy(x => x))
             {
                 var folder = Path.GetDirectoryName(file);
-                if (folder == null)
-                {
-                    var message = string.Format("Unexpected error - cannot get directory name from file {0}.", file);
-                    throw new Exception(message);
-                }
+                if (folder == null) throw new Exception($"Unexpected error - cannot get directory name from file {file}.");
 
                 FolderEntry folderEntry;
                 if (!folderEntryMap.TryGetValue(folder, out folderEntry))
@@ -113,6 +115,7 @@ namespace AK.Vault
         private FolderEntry GetOrCreateParent(FolderEntry folderEntry, IDictionary<string, FolderEntry> folderEntryMap)
         {
             var parentFolder = Path.GetDirectoryName(folderEntry.FullPath);
+            Debug.Assert(parentFolder != null);
 
             FolderEntry parentFolderEntry;
             if (!folderEntryMap.TryGetValue(parentFolder, out parentFolderEntry))
@@ -124,7 +127,7 @@ namespace AK.Vault
             }
 
             folderEntry.Parent = parentFolderEntry;
-            if (parentFolderEntry != null) parentFolderEntry.Folders.Add(folderEntry);
+            parentFolderEntry?.Folders.Add(folderEntry);
 
             return parentFolderEntry;
         }

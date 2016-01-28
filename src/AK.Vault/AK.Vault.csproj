@@ -42,7 +42,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AlgorithmType.cs" />
-    <Compile Include="ConfigurationProvider.cs" />
+    <Compile Include="Configuration\ConfigurationProvider.cs" />
+    <Compile Include="Configuration\Elements.cs" />
+    <Compile Include="Configuration\VaultConfiguration.cs" />
     <Compile Include="Factory.cs" />
     <Compile Include="FileEncryptionResult.cs" />
     <Compile Include="FileEncryptor.cs" />

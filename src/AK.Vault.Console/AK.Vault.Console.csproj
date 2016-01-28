@@ -44,8 +44,11 @@
   <ItemGroup>
     <Compile Include="CommandBase.cs" />
     <Compile Include="CommandParser.cs" />
+    <Compile Include="FindAndDecryptCommand.cs" />
     <Compile Include="DecryptCommand.cs" />
     <Compile Include="EncryptCommand.cs" />
+    <Compile Include="ReportCommand.cs" />
+    <Compile Include="VaultPrompter.cs" />
     <Compile Include="EncryptionKeyInputPrompter.cs" />
     <Compile Include="FindCommand.cs" />
     <Compile Include="ICommand.cs" />

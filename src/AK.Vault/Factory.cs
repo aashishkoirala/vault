@@ -1,6 +1,6 @@
 ﻿/*******************************************************************************************************************************
  * AK.Vault.Factory
- * Copyright © 2014 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
  * 
  * This file is part of VAULT.
  *  
@@ -24,6 +24,7 @@
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.Reflection;
+using AK.Vault.Configuration;
 
 #endregion
 
@@ -36,7 +37,6 @@ namespace AK.Vault
     /// <author>Aashish Koirala</author>
     public static class Factory
     {
-        private static readonly CompositionContainer CompositionContainer;
         private static readonly Container AppContainer;
 
         static Factory()
@@ -44,47 +44,41 @@ namespace AK.Vault
             var assembly = Assembly.GetExecutingAssembly();
             var assemblyCatalog = new AssemblyCatalog(assembly);
 
-            CompositionContainer = new CompositionContainer(assemblyCatalog);
-            AppContainer = CompositionContainer.GetExportedValue<Container>();
+            var compositionContainer = new CompositionContainer(assemblyCatalog);
+            AppContainer = compositionContainer.GetExportedValue<Container>();
         }
 
         /// <summary>
         /// Gets the IListGenerator instance.
         /// </summary>
-        public static IListGenerator ListGenerator
-        {
-            get { return AppContainer.ListGenerator; }
-        }
+        public static IListGenerator ListGenerator => AppContainer.ListGenerator;
 
         /// <summary>
         /// Gets thte IFileNameManager instance.
         /// </summary>
-        public static IFileNameManager FileNameManager
-        {
-            get { return AppContainer.FileNameManager; }
-        }
+        public static IFileNameManager FileNameManager => AppContainer.FileNameManager;
 
         /// <summary>
         /// Gets the IConfigurationProvider instance.
         /// </summary>
-        public static IConfigurationProvider ConfigurationProvider
-        {
-            get { return AppContainer.ConfigurationProvider; }
-        }
+        public static IConfigurationProvider ConfigurationProvider => AppContainer.ConfigurationProvider;
 
         /// <summary>
         /// Creates an IFileEncryptor based on the given encryption key input structure.
         /// </summary>
         /// <param name="encryptionKeyInput">Encryption key input structure.</param>
+        /// <param name="vaultName">Vault name.</param>
         /// <returns>IFileEncryptor instance.</returns>
-        public static IFileEncryptor CreateFileEncryptor(EncryptionKeyInput encryptionKeyInput)
+        public static IFileEncryptor CreateFileEncryptor(
+            EncryptionKeyInput encryptionKeyInput, string vaultName)
         {
             return new FileEncryptor(
                 AppContainer.SymmetricEncryptor,
                 AppContainer.EncryptionKeyGenerator,
                 AppContainer.ConfigurationProvider,
                 AppContainer.FileNameManager,
-                encryptionKeyInput);
+                encryptionKeyInput,
+                vaultName);
         }
 
         [Export, PartCreationPolicy(CreationPolicy.Shared)]

@@ -1,6 +1,6 @@
 ﻿/*******************************************************************************************************************************
  * AK.Vault.Message
- * Copyright © 2014 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
  * 
  * This file is part of VAULT.
  *  
@@ -27,8 +27,6 @@ namespace AK.Vault
     /// <author>Aashish Koirala</author>
     public class Message
     {
-        private static readonly Message EmptyField = new EmptyMessage();
-
         public Message(string description, bool isError = false)
         {
             this.Description = description;
@@ -40,10 +38,7 @@ namespace AK.Vault
         /// <summary>
         /// Represents an empty message to do nothing with.
         /// </summary>
-        public static Message Empty
-        {
-            get { return EmptyField; }
-        }
+        public static Message Empty { get; } = new EmptyMessage();
 
         /// <summary>
         /// Message description.

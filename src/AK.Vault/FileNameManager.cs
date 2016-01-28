@@ -1,6 +1,6 @@
 ﻿/*******************************************************************************************************************************
  * AK.Vault.FileNameManager
- * Copyright © 2014 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
  * 
  * This file is part of VAULT.
  *  
@@ -72,7 +72,7 @@ namespace AK.Vault
                 var hashSource = Encoding.UTF8.GetBytes(unencryptedFileName.ToLower());
                 hash = sha1.ComputeHash(hashSource);
             }
-            return string.Format("{0}.vault", BitConverter.ToString(hash).Replace("-", ""));
+            return $"{BitConverter.ToString(hash).Replace("-", "")}.vault";
         }
 
         public void WriteOriginalFileNameToStream(string fileName, Stream stream)

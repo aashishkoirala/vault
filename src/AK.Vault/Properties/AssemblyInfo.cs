@@ -1,6 +1,6 @@
 ﻿/*******************************************************************************************************************************
  * AK.Vault: AssemblyInfo
- * Copyright © 2014 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
  * 
  * This file is part of VAULT.
  *  
@@ -30,8 +30,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("VAULT Core Library")]
 [assembly: AssemblyCompany("Aashish Koirala")]
 [assembly: AssemblyProduct("VAULT")]
-[assembly: AssemblyCopyright("Copyright © Aashish Koirala, 2014")]
+[assembly: AssemblyCopyright("Copyright © Aashish Koirala, 2014-2016")]
 [assembly: ComVisible(false)]
 [assembly: Guid("6bb62916-fd33-413d-b594-0dbf263881b1")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.1.0.0")]
+[assembly: AssemblyFileVersion("1.1.0.0")]

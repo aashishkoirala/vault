@@ -1,6 +1,6 @@
 ﻿/*******************************************************************************************************************************
  * AK.Vault.Console.ICommand
- * Copyright © 2014 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
  * 
  * This file is part of VAULT.
  *  
@@ -27,6 +27,11 @@ namespace AK.Vault.Console
     /// <author>Aashish Koirala</author>
     internal interface ICommand
     {
+        /// <summary>
+        /// The vault name for use by the command.
+        /// </summary>
+        string VaultName { get; set; }
+
         /// <summary>
         /// Assigns the encryption key input, if one is needed by the command.
         /// </summary>

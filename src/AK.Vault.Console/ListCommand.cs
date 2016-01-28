@@ -1,6 +1,6 @@
 ﻿/*******************************************************************************************************************************
  * AK.Vault.Console.ListCommand
- * Copyright © 2014 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
  * 
  * This file is part of VAULT.
  *  
@@ -37,10 +37,7 @@ namespace AK.Vault.Console
     [CommandInfo("list", false)]
     internal class ListCommand : CommandBase
     {
-        protected override bool PromptBeforeStart
-        {
-            get { return false; }
-        }
+        protected override bool PromptBeforeStart => false;
 
         public override bool AssignParameters(string[] args)
         {
@@ -49,7 +46,7 @@ namespace AK.Vault.Console
 
         protected override bool ExecuteCommand(ICollection<Exception> exceptions)
         {
-            PrintListItem(Factory.ListGenerator.Generate());
+            PrintListItem(Factory.ListGenerator.Generate(this.VaultName));
             return true;
         }
 

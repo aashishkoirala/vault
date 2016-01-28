@@ -35,18 +35,27 @@ I did not want the added overhead of maintaining and protecting an encryption ke
 It then combines these values and calculates the 256-bit SHA1 hash of the result - which becomes the encryption key.
 
 ##### Configuration
-You have to configure two values in *vault.exe.config*:
+You can configure up to 36 vaults. A good use case for multiple vaults is if you are syncing each vault to a different cloud storage provider. You configure vaults in *vault.exe.config*:
 
-	<appSettings>
-		<add key="EncryptedFileLocation" value="encrypted_file_location"/>
-		<add key="DecryptedFileLocation" value="decrypted_file_location"/>
-	</appSettings>
+	<ak.vault>
+		<vaultConfiguration>
+		  <vaults>
+		    <vault name="vault_name" encryptedFileLocation="encrypted_file_location" decryptedFileLocation="decrypted_file_location" />
+		    <vault name="vault_name" encryptedFileLocation="encrypted_file_location" decryptedFileLocation="decrypted_file_location" />
+		    <vault name="vault_name" encryptedFileLocation="encrypted_file_location" decryptedFileLocation="decrypted_file_location" />
+		    <vault name="vault_name" encryptedFileLocation="encrypted_file_location" decryptedFileLocation="decrypted_file_location" />
+			...
+		  </vaults>
+		</vaultConfiguration>
+	</ak.vault>
 
 Where:
 
-*encrypted\_file\_location:* The folder where you want to keep all your encrypted files. This needs to be one folder where everything goes, and can be sync'ed with your favorite cloud storage.
+*vault\_name:* A unique name to identify the vault. This must be unique for each vault, and the application will ask you to pick a vault before you do anything.
 
-*decrypted\_file\_location:* The folder that is used as a temporary workspace to place decrypted file and folder structure in as you're working with a set of files.
+*encrypted\_file\_location:* The folder where you want to keep all your encrypted files for this vault. This needs to be one folder where everything goes, and can be sync'ed with your favorite cloud storage.
+
+*decrypted\_file\_location:* The folder that is used as a temporary workspace to place decrypted file and folder structure in as you're working with a set of files. You could use a different one per vault or the same one for all vaults.
 
 ##### Usage
 
@@ -57,6 +66,10 @@ Launches the interactive console application. Once you have some files in your e
 **vault list**
 
 Displays a tree-type list of all files that are in the encrypted file location, by folder hierarchy.
+
+**vault report**
+
+Displays a tabular report of all files that are in the encrypted file location, with the original and encrypted names.
 
 **vault find** *original\_file\_full\_path*
 
@@ -82,3 +95,11 @@ Decrypts the given files and puts them in the configured decrypted file location
 *Example:*
 
 	vault decrypt 2342389234ABEF02340ABC203482300DE234023EF02340ABC20348F0234348F0.vault
+
+**vault fd** *original\_file1\_full\_path* [*original\_file2\_full\_path*] `...`
+
+Checks to see if the file has been encrypted and is in the encrypted file location. If so, decrypts the file.
+
+*Example:*
+
+	vault fd C:\Aashish\Text\TechRef\Domain_Driven_Design.pdf

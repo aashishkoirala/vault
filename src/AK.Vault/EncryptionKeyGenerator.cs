@@ -1,6 +1,6 @@
 ﻿/*******************************************************************************************************************************
  * AK.Vault.EncryptionKeyGenerator
- * Copyright © 2014 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
  * 
  * This file is part of VAULT.
  *  
@@ -48,9 +48,7 @@ namespace AK.Vault
     {
         public byte[] Generate(EncryptionKeyInput input)
         {
-            var seed = string.Format(
-                "{0}|{1}|{2}|{3}",
-                input.FullName, input.DateOfBirth, input.SocialSecurityNumber, input.PassPhrase);
+            var seed = $"{input.FullName}|{input.DateOfBirth}|{input.SocialSecurityNumber}|{input.PassPhrase}";
 
             var seedBinary = Encoding.ASCII.GetBytes(seed);
 

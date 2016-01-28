@@ -1,6 +1,6 @@
 ﻿/*******************************************************************************************************************************
  * AK.Vault.Console.EncryptCommand
- * Copyright © 2014 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
  * 
  * This file is part of VAULT.
  *  
@@ -44,7 +44,7 @@ namespace AK.Vault.Console
         {
             Screen.Print();
             Screen.Print("Starting encryption of the following:");
-            foreach (var filePattern in filePatterns)
+            foreach (var filePattern in this.filePatterns)
                 Screen.Print("{0}{1}", '\t', filePattern);
             Screen.Print();
         }
@@ -67,8 +67,7 @@ namespace AK.Vault.Console
 
             foreach (var result in results.Where(x => !x.IsDone && x.Exception != null))
             {
-                var message = string.Format("Error encrypting {0} - {1}.",
-                                            result.UnencryptedFilePath, result.Exception.Message);
+                var message = $"Error encrypting {result.UnencryptedFilePath} - {result.Exception.Message}.";
 
                 exceptions.Add(new Exception(message, result.Exception));
             }
