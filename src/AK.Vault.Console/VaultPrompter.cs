@@ -46,10 +46,6 @@ namespace AK.Vault.Console
         {
             cancelled = false;
 
-            Screen.Print("Please pick a vault to work with:");
-            Screen.Print("Press ESC to Cancel.");
-            Screen.Print();
-
             var vaults = configurationProvider.Configuration.Vaults;
             if (!vaults.Any())
             {
@@ -57,6 +53,12 @@ namespace AK.Vault.Console
                 cancelled = true;
                 return null;
             }
+
+            if (vaults.Count == 1) return vaults.Single().Name;
+
+            Screen.Print("Please pick a vault to work with:");
+            Screen.Print("Press ESC to Cancel.");
+            Screen.Print();
 
             var menuItems = vaults
                 .OrderBy(x => x.Name)
