@@ -34,9 +34,11 @@ namespace AK.Vault.Console
     /// <author>Aashish Koirala</author>
     internal static class Screen
     {
+        public static bool IsRedirected => Con.IsOutputRedirected || Con.IsInputRedirected || Con.IsErrorRedirected;
+
         public static void Clear()
         {
-            Con.Clear();
+            if (!Con.IsOutputRedirected) Con.Clear();
         }
 
         public static void Print()

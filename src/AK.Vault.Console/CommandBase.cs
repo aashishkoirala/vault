@@ -107,6 +107,8 @@ namespace AK.Vault.Console
 
         protected bool PromptContinueOrCancel(string prompt = "Press ENTER to continue, ESC to Cancel.")
         {
+            if (Screen.IsRedirected) return true;
+
             Screen.Print(prompt);
             while (true)
             {
@@ -118,6 +120,8 @@ namespace AK.Vault.Console
 
         protected void PromptContinue(string prompt = "Press ENTER to continue.")
         {
+            if (Screen.IsRedirected) return;
+                        
             Screen.Print(prompt);
             while (Screen.ReadKey().Key != ConsoleKey.Enter) {}
         }
