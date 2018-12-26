@@ -24,7 +24,6 @@
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.IO;
 using System.Linq;
 
@@ -36,7 +35,6 @@ namespace AK.Vault.Console
     /// ICommand instance for the "find-and-decrypt" command; performs find-and-decryption.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    [Export(typeof (ICommand))]
     [CommandInfo(CommandName = "fd", RequiresEncryptionKeyInput = true)]
     internal class FindAndDecryptCommand : CommandBase
     {
@@ -46,7 +44,6 @@ namespace AK.Vault.Console
         private readonly FindCommand findCommand;
         private readonly DecryptCommand decryptCommand;
 
-        [ImportingConstructor]
         public FindAndDecryptCommand(IFileEncryptorFactory fileEncryptorFactory,
             IConfiguration configuration, FindCommand findCommand, DecryptCommand decryptCommand) : 
             base(fileEncryptorFactory)

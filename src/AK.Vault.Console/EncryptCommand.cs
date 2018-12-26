@@ -24,7 +24,6 @@
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.Linq;
 
 #endregion
@@ -35,14 +34,12 @@ namespace AK.Vault.Console
     /// ICommand instance for the "encrypt" command; performs encryption.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    [Export(typeof(ICommand))]
     [CommandInfo(CommandName = "encrypt", RequiresEncryptionKeyInput = true)]
     internal class EncryptCommand : CommandBase
     {
         private readonly IConfiguration configuration;
         private string[] filePatterns;
 
-        [ImportingConstructor]
         public EncryptCommand(IConfiguration configuration, IFileEncryptorFactory fileEncryptorFactory) :
             base(fileEncryptorFactory)
         {

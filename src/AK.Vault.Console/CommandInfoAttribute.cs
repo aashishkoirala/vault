@@ -19,38 +19,16 @@
  * 
  *******************************************************************************************************************************/
 
-#region Namespace Imports
-
 using System;
-using System.Composition;
-
-#endregion
 
 namespace AK.Vault.Console
 {
-    /// <summary>
-    /// MEF metadata view for ICommand.
-    /// </summary>
-    public interface ICommandInfo
-    {
-        /// <summary>
-        /// Name of the command.
-        /// </summary>
-        string CommandName { get; }
-
-        /// <summary>
-        /// Whether the command requires encryption key input.
-        /// </summary>
-        bool RequiresEncryptionKeyInput { get; }
-    }
-
     /// <summary>
     /// MEF metadata attribute that implements ICommandInfo and should be applied
     /// to ICommand instances.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    [MetadataAttribute]
-    internal class CommandInfoAttribute : Attribute, ICommandInfo
+    internal class CommandInfoAttribute : Attribute
     {
         public string CommandName { get; set; }
         public bool RequiresEncryptionKeyInput { get; set; }

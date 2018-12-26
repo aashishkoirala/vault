@@ -22,9 +22,9 @@
 #region Namespace Imports
 
 using AK.Vault.Configuration;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.IO;
 using System.Linq;
 
@@ -36,20 +36,18 @@ namespace AK.Vault.Console
     /// ICommand instance for the "report" command; generates a tabular report of all files in the vault.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    [Export(typeof (ICommand))]
     [CommandInfo(CommandName = "report", RequiresEncryptionKeyInput = false)]
     internal class ReportCommand : CommandBase
     {
         protected override bool PromptBeforeStart => false;
 
-        private readonly IConfigurationProvider configurationProvider;
+        private readonly VaultConfiguration vaultConfiguration;
         private readonly IFileNameManager fileNameManager;
 
-        [ImportingConstructor]
-        public ReportCommand(IConfigurationProvider configurationProvider, IFileNameManager fileNameManager, 
-            IFileEncryptorFactory fileEncryptorFactory) : base(fileEncryptorFactory)
+        public ReportCommand(IOptionsMonitor<VaultConfiguration> vaultConfiguration, 
+            IFileNameManager fileNameManager,  IFileEncryptorFactory fileEncryptorFactory) : base(fileEncryptorFactory)
         {
-            this.configurationProvider = configurationProvider;
+            this.vaultConfiguration = vaultConfiguration.CurrentValue;
             this.fileNameManager = fileNameManager;
         }
 
@@ -57,7 +55,7 @@ namespace AK.Vault.Console
 
         protected override bool ExecuteCommand(ICollection<Exception> exceptions)
         {
-            var encryptedFileLocation = this.configurationProvider.Configuration.Vaults
+            var encryptedFileLocation = this.vaultConfiguration.Vaults
                 .Single(x => x.Name == this.VaultName).EncryptedFileLocation;
 
             Screen.Print("Encrypted Name\tOriginal Name");

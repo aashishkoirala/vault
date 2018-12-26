@@ -23,7 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
 
 #endregion
 
@@ -33,7 +32,6 @@ namespace AK.Vault.Console
     /// ICommand instance for the "list" command; generates a display tree of the vault.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    [Export(typeof(ICommand))]
     [CommandInfo(CommandName = "list", RequiresEncryptionKeyInput = false)]
     internal class ListCommand : CommandBase
     {
@@ -41,7 +39,6 @@ namespace AK.Vault.Console
 
         private readonly IListGenerator listGenerator;
 
-        [ImportingConstructor]
         public ListCommand(IListGenerator listGenerator, IFileEncryptorFactory fileEncryptorFactory) :
             base(fileEncryptorFactory)
         {

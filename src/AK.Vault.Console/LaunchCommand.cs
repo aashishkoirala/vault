@@ -24,7 +24,6 @@
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Composition;
 
 #endregion
 
@@ -34,14 +33,12 @@ namespace AK.Vault.Console
     /// ICommand instance for the "launch" command; opens the interactive UI.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    [Export(typeof (ICommand))]
     [CommandInfo(CommandName = "launch", RequiresEncryptionKeyInput = true)]
     internal class LaunchCommand : CommandBase
     {
         private Launcher launcher;
         private readonly IListGenerator listGenerator;
 
-        [ImportingConstructor]
         public LaunchCommand(IListGenerator listGenerator, IFileEncryptorFactory fileEncryptorFactory) : 
             base(fileEncryptorFactory)
         {

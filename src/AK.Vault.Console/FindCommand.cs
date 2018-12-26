@@ -23,9 +23,9 @@
 
 using AK.Vault.Configuration;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.IO;
 using System.Linq;
 
@@ -37,26 +37,23 @@ namespace AK.Vault.Console
     /// ICommand instance for the "find" command; looks for a file path in the vault.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    [Export(typeof(ICommand))]
-    [Export]
     [CommandInfo(CommandName = "find", RequiresEncryptionKeyInput = false)]
     internal class FindCommand : CommandBase
     {
         private string fileToFind;
         private readonly IFileNameManager fileNameManager;
-        private readonly Configuration.IConfigurationProvider configurationProvider;
+        private readonly VaultConfiguration vaultConfiguration;
         private readonly IConfiguration configuration;
 
         public Action<string> FileFound { get; set; }
 
-        [ImportingConstructor]
         public FindCommand(IConfiguration configuration, IFileNameManager fileNameManager, 
-            Configuration.IConfigurationProvider configurationProvider, 
+            IOptionsMonitor<VaultConfiguration> vaultConfiguration, 
             IFileEncryptorFactory fileEncryptorFactory) : base(fileEncryptorFactory)
         {
             this.configuration = configuration;
             this.fileNameManager = fileNameManager;
-            this.configurationProvider = configurationProvider;
+            this.vaultConfiguration = vaultConfiguration.CurrentValue;
         }
 
         public override bool ProcessParameters()
@@ -71,7 +68,7 @@ namespace AK.Vault.Console
 
         protected override bool ExecuteCommand(ICollection<Exception> exceptions)
         {
-            var encryptedFileLocation = this.configurationProvider.Configuration.Vaults
+            var encryptedFileLocation = this.vaultConfiguration.Vaults
                 .Single(x => x.Name == this.VaultName).EncryptedFileLocation;
 
             var encryptedName = this.fileNameManager.GenerateNameForEncryptedFile(this.fileToFind);

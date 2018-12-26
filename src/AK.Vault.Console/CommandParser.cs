@@ -22,8 +22,6 @@
 #region Namespace Imports
 
 using System;
-using System.Composition;
-using System.Composition.Hosting;
 using System.Linq;
 using System.Reflection;
 using System.Threading;

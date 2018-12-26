@@ -21,7 +21,6 @@
 
 #region Namespace Imports
 
-using System.Composition;
 using AK.Vault.Configuration;
 using Microsoft.Extensions.Options;
 
@@ -38,7 +37,6 @@ namespace AK.Vault
     /// Creates FileEncryptor instances.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    [Export(typeof(IFileEncryptorFactory))]
     public class FileEncryptorFactory : IFileEncryptorFactory
     {
         private readonly IEncryptionKeyGenerator encryptionKeyGenerator;
@@ -46,7 +44,6 @@ namespace AK.Vault
         private readonly IFileNameManager fileNameManager;
         private readonly ISymmetricEncryptor symmetricEncryptor;
 
-        [ImportingConstructor]
         public FileEncryptorFactory(IEncryptionKeyGenerator encryptionKeyGenerator, 
             IOptionsMonitor<VaultConfiguration> vaultConfiguration,
             IFileNameManager fileNameManager, ISymmetricEncryptor symmetricEncryptor)

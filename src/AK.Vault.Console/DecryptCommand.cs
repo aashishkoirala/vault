@@ -24,7 +24,6 @@
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.Linq;
 
 #endregion
@@ -35,15 +34,12 @@ namespace AK.Vault.Console
     /// ICommand instance for the "decrypt" command; performs decryption.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    [Export(typeof(ICommand))]
-    [Export]
     [CommandInfo(CommandName ="decrypt", RequiresEncryptionKeyInput = true)]
     internal class DecryptCommand : CommandBase
     {
         private readonly IConfiguration configuration;
         private string[] filePatterns;
 
-        [ImportingConstructor]
         public DecryptCommand(IConfiguration configuration, IFileEncryptorFactory fileEncryptorFactory) : 
             base(fileEncryptorFactory)
         {
