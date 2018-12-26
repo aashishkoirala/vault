@@ -22,7 +22,8 @@
 #region Namespace Imports
 
 using System;
-using System.ComponentModel.Composition.Hosting;
+using System.Composition;
+using System.Composition.Hosting;
 using System.Linq;
 using System.Reflection;
 using AK.Vault.Configuration;
@@ -74,11 +75,11 @@ namespace AK.Vault.Console
                 var commandName = args[0];
                 var assemblies = new[] {Assembly.GetExecutingAssembly(), typeof (IConfigurationProvider).Assembly};
 
-                using (var catalog = new AggregateCatalog(assemblies.Select(x => new AssemblyCatalog(x))))
-                using (var container = new CompositionContainer(catalog))
+                var containerConfig = new ContainerConfiguration().WithAssemblies(assemblies);
+                using (var container = containerConfig.CreateContainer())
                 {
                     var export = container
-                        .GetExports<ICommand, ICommandInfo>()
+                        .GetExports<ExportFactory<ICommand, CommandInfoAttribute>>()
                         .SingleOrDefault(x => x.Metadata.CommandName == commandName);
 
                     if (export == null)
@@ -88,7 +89,7 @@ namespace AK.Vault.Console
                         return false;
                     }
 
-                    command = export.Value;
+                    command = export.CreateExport().Value;
                     var assignParametersResult = command.AssignParameters(args.Skip(1).ToArray());
                     if (!assignParametersResult)
                     {
@@ -98,7 +99,7 @@ namespace AK.Vault.Console
                     }
 
                     bool cancelled;
-                    var vaultName = VaultPrompter.Prompt(Factory.ConfigurationProvider, out cancelled);
+                    var vaultName = VaultPrompter.Prompt(container.GetExport<IConfigurationProvider>(), out cancelled);
                     if (cancelled) return false;
                     command.VaultName = vaultName;
                     Screen.Clear();

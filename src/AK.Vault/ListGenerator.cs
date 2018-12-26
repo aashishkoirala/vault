@@ -23,7 +23,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -50,14 +50,14 @@ namespace AK.Vault
         FolderEntry Generate(string vaultName);
     }
 
-    [Export(typeof (IListGenerator)), PartCreationPolicy(CreationPolicy.Shared)]
+    [Export(typeof (IListGenerator))]
     internal class ListGenerator : IListGenerator
     {
         private readonly IFileNameManager fileNameManager;
         private readonly IConfigurationProvider configurationProvider;
 
         [ImportingConstructor]
-        internal ListGenerator(
+        public ListGenerator(
             [Import] IFileNameManager fileNameManager,
             [Import] IConfigurationProvider configurationProvider)
         {

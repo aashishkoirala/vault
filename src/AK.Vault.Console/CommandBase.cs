@@ -39,6 +39,7 @@ namespace AK.Vault.Console
     /// <author>Aashish Koirala</author>
     internal abstract class CommandBase : ICommand
     {
+        private readonly IFileEncryptorFactory fileEncryptorFactory;
         protected IFileEncryptor FileEncryptor;
 
         protected virtual bool PromptBeforeStart => true;
@@ -49,9 +50,14 @@ namespace AK.Vault.Console
 
         public virtual string VaultName { get; set; }
 
+        protected CommandBase(IFileEncryptorFactory fileEncryptorFactory)
+        {
+            this.fileEncryptorFactory = fileEncryptorFactory;
+        }
+
         public virtual void AssignEncryptionKeyInput(EncryptionKeyInput encryptionKeyInput)
         {
-            this.FileEncryptor = Factory.CreateFileEncryptor(encryptionKeyInput, this.VaultName);
+            this.FileEncryptor = this.fileEncryptorFactory.Create(encryptionKeyInput, this.VaultName);
             this.FileEncryptor.UpdateMessageAction =
                 message =>
                 Screen.Print(message.IsError ? Screen.Colors.Error : Screen.Colors.Normal, message.Description);

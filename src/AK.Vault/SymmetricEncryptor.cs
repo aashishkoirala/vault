@@ -23,7 +23,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.IO;
 using System.Security.Cryptography;
 
@@ -70,7 +70,7 @@ namespace AK.Vault
         byte[] Decrypt(SymmetricEncryptionParameters parameters, byte[] inData);
     }
 
-    [Export(typeof (ISymmetricEncryptor)), PartCreationPolicy(CreationPolicy.Shared)]
+    [Export(typeof (ISymmetricEncryptor))]
     internal class SymmetricEncryptor : ISymmetricEncryptor
     {
         private static readonly IDictionary<AlgorithmType, Func<SymmetricAlgorithm>>

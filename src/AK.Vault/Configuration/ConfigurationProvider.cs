@@ -22,7 +22,7 @@
 #region Namespace Imports
 
 using System;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Configuration;
 using System.IO;
 using System.Linq;
@@ -44,7 +44,7 @@ namespace AK.Vault.Configuration
         VaultConfiguration Configuration { get; }
     }
 
-    [Export(typeof (IConfigurationProvider)), PartCreationPolicy(CreationPolicy.Shared)]
+    [Export(typeof (IConfigurationProvider))]
     internal class ConfigurationProvider : IConfigurationProvider
     {
         public ConfigurationProvider()

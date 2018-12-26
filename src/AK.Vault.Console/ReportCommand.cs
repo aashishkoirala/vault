@@ -24,7 +24,7 @@
 using AK.Vault.Configuration;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.IO;
 using System.Linq;
 
@@ -36,8 +36,8 @@ namespace AK.Vault.Console
     /// ICommand instance for the "report" command; generates a tabular report of all files in the vault.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    [Export(typeof (ICommand)), PartCreationPolicy(CreationPolicy.NonShared)]
-    [CommandInfo("report", false)]
+    [Export(typeof (ICommand))]
+    [CommandInfo(CommandName = "report", RequiresEncryptionKeyInput = false)]
     internal class ReportCommand : CommandBase
     {
         protected override bool PromptBeforeStart => false;
@@ -46,9 +46,8 @@ namespace AK.Vault.Console
         private readonly IFileNameManager fileNameManager;
 
         [ImportingConstructor]
-        public ReportCommand(
-            [Import] IConfigurationProvider configurationProvider,
-            [Import] IFileNameManager fileNameManager)
+        public ReportCommand(IConfigurationProvider configurationProvider, IFileNameManager fileNameManager, 
+            IFileEncryptorFactory fileEncryptorFactory) : base(fileEncryptorFactory)
         {
             this.configurationProvider = configurationProvider;
             this.fileNameManager = fileNameManager;

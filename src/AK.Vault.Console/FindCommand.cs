@@ -21,9 +21,10 @@
 
 #region Namespace Imports
 
+using AK.Vault.Configuration;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.IO;
 using System.Linq;
 
@@ -35,13 +36,24 @@ namespace AK.Vault.Console
     /// ICommand instance for the "find" command; looks for a file path in the vault.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    [Export(typeof(ICommand)), PartCreationPolicy(CreationPolicy.NonShared)]
-    [CommandInfo("find", false)]
+    [Export(typeof(ICommand))]
+    [Export]
+    [CommandInfo(CommandName = "find", RequiresEncryptionKeyInput = false)]
     internal class FindCommand : CommandBase
     {
         private string fileToFind;
+        private readonly IFileNameManager fileNameManager;
+        private readonly IConfigurationProvider configurationProvider;
 
         public Action<string> FileFound { get; set; }
+
+        [ImportingConstructor]
+        public FindCommand(IFileNameManager fileNameManager, IConfigurationProvider configurationProvider, 
+            IFileEncryptorFactory fileEncryptorFactory) : base(fileEncryptorFactory)
+        {
+            this.fileNameManager = fileNameManager;
+            this.configurationProvider = configurationProvider;
+        }
 
         public override bool AssignParameters(string[] args)
         {
@@ -55,10 +67,10 @@ namespace AK.Vault.Console
 
         protected override bool ExecuteCommand(ICollection<Exception> exceptions)
         {
-            var encryptedFileLocation = Factory.ConfigurationProvider.Configuration.Vaults
+            var encryptedFileLocation = this.configurationProvider.Configuration.Vaults
                 .Single(x => x.Name == this.VaultName).EncryptedFileLocation;
 
-            var encryptedName = Factory.FileNameManager.GenerateNameForEncryptedFile(this.fileToFind);
+            var encryptedName = this.fileNameManager.GenerateNameForEncryptedFile(this.fileToFind);
             var fullPath = Path.Combine(encryptedFileLocation, encryptedName);
 
             fullPath = File.Exists(fullPath) ? fullPath : null;

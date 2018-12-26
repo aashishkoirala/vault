@@ -21,7 +21,7 @@
 
 #region Namespace Imports
 
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -43,7 +43,7 @@ namespace AK.Vault
         byte[] Generate(EncryptionKeyInput input);
     }
 
-    [Export(typeof (IEncryptionKeyGenerator)), PartCreationPolicy(CreationPolicy.Shared)]
+    [Export(typeof (IEncryptionKeyGenerator))]
     internal class EncryptionKeyGenerator : IEncryptionKeyGenerator
     {
         public byte[] Generate(EncryptionKeyInput input)

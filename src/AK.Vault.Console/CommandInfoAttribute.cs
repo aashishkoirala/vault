@@ -22,7 +22,7 @@
 #region Namespace Imports
 
 using System;
-using System.ComponentModel.Composition;
+using System.Composition;
 
 #endregion
 
@@ -52,13 +52,7 @@ namespace AK.Vault.Console
     [MetadataAttribute]
     internal class CommandInfoAttribute : Attribute, ICommandInfo
     {
-        public CommandInfoAttribute(string commandName, bool requiresEncryptionKeyInput)
-        {
-            this.CommandName = commandName;
-            this.RequiresEncryptionKeyInput = requiresEncryptionKeyInput;
-        }
-
-        public string CommandName { get; }
-        public bool RequiresEncryptionKeyInput { get; }
+        public string CommandName { get; set; }
+        public bool RequiresEncryptionKeyInput { get; set; }
     }
 }

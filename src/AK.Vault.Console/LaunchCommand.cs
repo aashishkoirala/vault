@@ -23,7 +23,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
+using System.Composition;
 
 #endregion
 
@@ -33,11 +33,19 @@ namespace AK.Vault.Console
     /// ICommand instance for the "launch" command; opens the interactive UI.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    [Export(typeof (ICommand)), PartCreationPolicy(CreationPolicy.NonShared)]
-    [CommandInfo("launch", true)]
+    [Export(typeof (ICommand))]
+    [CommandInfo(CommandName = "launch", RequiresEncryptionKeyInput = true)]
     internal class LaunchCommand : CommandBase
     {
         private Launcher launcher;
+        private readonly IListGenerator listGenerator;
+
+        [ImportingConstructor]
+        public LaunchCommand(IListGenerator listGenerator, IFileEncryptorFactory fileEncryptorFactory) : 
+            base(fileEncryptorFactory)
+        {
+            this.listGenerator = listGenerator;
+        }
 
         public override bool AssignParameters(string[] args)
         {
@@ -47,7 +55,7 @@ namespace AK.Vault.Console
         public override void AssignEncryptionKeyInput(EncryptionKeyInput encryptionKeyInput)
         {
             base.AssignEncryptionKeyInput(encryptionKeyInput);
-            this.launcher = new Launcher(this.FileEncryptor, Factory.ListGenerator, this.VaultName);
+            this.launcher = new Launcher(this.FileEncryptor, this.listGenerator, this.VaultName);
         }
 
         protected override bool PromptAfterEnd => false;

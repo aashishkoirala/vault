@@ -22,7 +22,7 @@
 #region Namespace Imports
 
 using System;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -61,7 +61,7 @@ namespace AK.Vault
         string ReadOriginalFileNameFromStream(Stream stream);
     }
 
-    [Export(typeof (IFileNameManager)), PartCreationPolicy(CreationPolicy.Shared)]
+    [Export(typeof (IFileNameManager))]
     internal class FileNameManager : IFileNameManager
     {
         public string GenerateNameForEncryptedFile(string unencryptedFileName)
