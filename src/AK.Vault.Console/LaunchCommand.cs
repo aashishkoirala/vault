@@ -21,6 +21,7 @@
 
 #region Namespace Imports
 
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -47,10 +48,7 @@ namespace AK.Vault.Console
             this.listGenerator = listGenerator;
         }
 
-        public override bool AssignParameters(string[] args)
-        {
-            return true;
-        }
+        public override bool ProcessParameters() => true;
 
         public override void AssignEncryptionKeyInput(EncryptionKeyInput encryptionKeyInput)
         {

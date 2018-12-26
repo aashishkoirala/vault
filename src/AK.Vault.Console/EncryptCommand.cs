@@ -21,6 +21,7 @@
 
 #region Namespace Imports
 
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -38,10 +39,21 @@ namespace AK.Vault.Console
     [CommandInfo(CommandName = "encrypt", RequiresEncryptionKeyInput = true)]
     internal class EncryptCommand : CommandBase
     {
+        private readonly IConfiguration configuration;
         private string[] filePatterns;
 
         [ImportingConstructor]
-        public EncryptCommand(IFileEncryptorFactory fileEncryptorFactory) : base(fileEncryptorFactory) { }
+        public EncryptCommand(IConfiguration configuration, IFileEncryptorFactory fileEncryptorFactory) :
+            base(fileEncryptorFactory)
+        {
+            this.configuration = configuration;
+        }
+
+        public override bool ProcessParameters()
+        {
+            this.filePatterns = this.configuration["target"].Split(';');
+            return true;
+        }
 
         protected override void WriteHeader()
         {
@@ -50,12 +62,6 @@ namespace AK.Vault.Console
             foreach (var filePattern in this.filePatterns)
                 Screen.Print("{0}{1}", '\t', filePattern);
             Screen.Print();
-        }
-
-        public override bool AssignParameters(string[] args)
-        {
-            this.filePatterns = args;
-            return true;
         }
 
         protected override bool ExecuteCommand(ICollection<Exception> exceptions)

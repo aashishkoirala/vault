@@ -76,7 +76,7 @@ namespace AK.Vault
     internal class FileEncryptor : IFileEncryptor
     {
         private readonly ISymmetricEncryptor symmetricEncryptor;
-        private readonly IConfigurationProvider configurationProvider;
+        private readonly VaultConfiguration vaultConfiguration;
         private readonly IFileNameManager fileNameManager;
         private readonly SymmetricEncryptionParameters parameters;
         private readonly BlockingCollection<Message> messages = new BlockingCollection<Message>();
@@ -85,7 +85,7 @@ namespace AK.Vault
         internal FileEncryptor(
             ISymmetricEncryptor symmetricEncryptor,
             IEncryptionKeyGenerator encryptionKeyGenerator,
-            IConfigurationProvider configurationProvider,
+            VaultConfiguration vaultConfiguration,
             IFileNameManager fileNameManager,
             EncryptionKeyInput encryptionKeyInput,
             string vaultName)
@@ -101,7 +101,7 @@ namespace AK.Vault
             };
 
             this.symmetricEncryptor = symmetricEncryptor;
-            this.configurationProvider = configurationProvider;
+            this.vaultConfiguration = vaultConfiguration;
             this.fileNameManager = fileNameManager;
             this.vaultName = vaultName;
         }
@@ -156,7 +156,7 @@ namespace AK.Vault
 
         private IEnumerable<FileEncryptionResult> GetEncryptionResultListForDecryption(string filePattern)
         {
-            var encryptedFileLocation = this.configurationProvider.Configuration.Vaults
+            var encryptedFileLocation = this.vaultConfiguration.Vaults
                 .Single(x => x.Name == this.vaultName).EncryptedFileLocation;
 
             return Directory
@@ -206,7 +206,7 @@ namespace AK.Vault
             if (encryptionResult.IsDone) return;
             try
             {
-                var encryptedFileLocation = this.configurationProvider.Configuration.Vaults
+                var encryptedFileLocation = this.vaultConfiguration.Vaults
                     .Single(x => x.Name == this.vaultName).EncryptedFileLocation;
 
                 encryptionResult.EncryptedFilePath = Path.Combine(encryptedFileLocation,
@@ -255,7 +255,7 @@ namespace AK.Vault
                             targetDirectory.IndexOf(Path.DirectorySeparatorChar) + 1);
                     }
 
-                    var decryptedFileLocation = this.configurationProvider.Configuration.Vaults
+                    var decryptedFileLocation = this.vaultConfiguration.Vaults
                         .Single(x => x.Name == this.vaultName).DecryptedFileLocation;
 
                     targetDirectory = Path.Combine(decryptedFileLocation, targetDirectory);

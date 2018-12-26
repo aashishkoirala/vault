@@ -25,7 +25,7 @@ namespace AK.Vault
     /// Types of encryption algorithms.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    internal enum AlgorithmType
+    public enum AlgorithmType
     {
         /// <summary>
         /// AES

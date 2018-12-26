@@ -62,7 +62,7 @@ namespace AK.Vault
     }
 
     [Export(typeof (IFileNameManager))]
-    internal class FileNameManager : IFileNameManager
+    public class FileNameManager : IFileNameManager
     {
         public string GenerateNameForEncryptedFile(string unencryptedFileName)
         {

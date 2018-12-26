@@ -29,6 +29,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AK.Vault.Configuration;
+using Microsoft.Extensions.Options;
+
 
 #endregion
 
@@ -51,23 +53,23 @@ namespace AK.Vault
     }
 
     [Export(typeof (IListGenerator))]
-    internal class ListGenerator : IListGenerator
+    public class ListGenerator : IListGenerator
     {
         private readonly IFileNameManager fileNameManager;
-        private readonly IConfigurationProvider configurationProvider;
+        private readonly VaultConfiguration vaultConfiguration;
 
         [ImportingConstructor]
         public ListGenerator(
             [Import] IFileNameManager fileNameManager,
-            [Import] IConfigurationProvider configurationProvider)
+            [Import] IOptionsMonitor<VaultConfiguration> vaultConfiguration)
         {
             this.fileNameManager = fileNameManager;
-            this.configurationProvider = configurationProvider;
+            this.vaultConfiguration = vaultConfiguration.CurrentValue;
         }
 
         public FolderEntry Generate(string vaultName)
         {
-            var encryptedFileLocation = this.configurationProvider.Configuration.Vaults
+            var encryptedFileLocation = this.vaultConfiguration.Vaults
                 .Single(x => x.Name == vaultName).EncryptedFileLocation;
 
             var files = Directory

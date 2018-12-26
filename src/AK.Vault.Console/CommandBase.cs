@@ -46,7 +46,7 @@ namespace AK.Vault.Console
 
         protected virtual bool PromptAfterEnd => true;
 
-        public abstract bool AssignParameters(string[] args);
+        public abstract bool ProcessParameters();
 
         public virtual string VaultName { get; set; }
 

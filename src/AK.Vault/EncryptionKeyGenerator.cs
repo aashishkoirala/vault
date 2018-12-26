@@ -33,7 +33,7 @@ namespace AK.Vault
     /// Generates symmetric encryption key based on the given input structure.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    internal interface IEncryptionKeyGenerator
+    public interface IEncryptionKeyGenerator
     {
         /// <summary>
         /// Generates a symmetric encryption key.
@@ -44,7 +44,7 @@ namespace AK.Vault
     }
 
     [Export(typeof (IEncryptionKeyGenerator))]
-    internal class EncryptionKeyGenerator : IEncryptionKeyGenerator
+    public class EncryptionKeyGenerator : IEncryptionKeyGenerator
     {
         public byte[] Generate(EncryptionKeyInput input)
         {

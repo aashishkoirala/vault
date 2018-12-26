@@ -23,6 +23,7 @@
 
 using System.Composition;
 using AK.Vault.Configuration;
+using Microsoft.Extensions.Options;
 
 #endregion
 
@@ -38,19 +39,20 @@ namespace AK.Vault
     /// </summary>
     /// <author>Aashish Koirala</author>
     [Export(typeof(IFileEncryptorFactory))]
-    internal class FileEncryptorFactory : IFileEncryptorFactory
+    public class FileEncryptorFactory : IFileEncryptorFactory
     {
         private readonly IEncryptionKeyGenerator encryptionKeyGenerator;
-        private readonly IConfigurationProvider configurationProvider;
+        private readonly VaultConfiguration vaultConfiguration;
         private readonly IFileNameManager fileNameManager;
         private readonly ISymmetricEncryptor symmetricEncryptor;
 
         [ImportingConstructor]
-        public FileEncryptorFactory(IEncryptionKeyGenerator encryptionKeyGenerator, IConfigurationProvider configurationProvider,
+        public FileEncryptorFactory(IEncryptionKeyGenerator encryptionKeyGenerator, 
+            IOptionsMonitor<VaultConfiguration> vaultConfiguration,
             IFileNameManager fileNameManager, ISymmetricEncryptor symmetricEncryptor)
         {
             this.encryptionKeyGenerator = encryptionKeyGenerator;
-            this.configurationProvider = configurationProvider;
+            this.vaultConfiguration = vaultConfiguration.CurrentValue;
             this.fileNameManager = fileNameManager;
             this.symmetricEncryptor = symmetricEncryptor;
         }
@@ -63,6 +65,6 @@ namespace AK.Vault
         /// <returns>IFileEncryptor instance.</returns>
         public IFileEncryptor Create(EncryptionKeyInput encryptionKeyInput, string vaultName) =>
             new FileEncryptor(this.symmetricEncryptor, this.encryptionKeyGenerator,
-                this.configurationProvider, this.fileNameManager, encryptionKeyInput, vaultName);
+                this.vaultConfiguration, this.fileNameManager, encryptionKeyInput, vaultName);
     }
 }

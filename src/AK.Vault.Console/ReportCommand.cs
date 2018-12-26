@@ -53,10 +53,7 @@ namespace AK.Vault.Console
             this.fileNameManager = fileNameManager;
         }
 
-        public override bool AssignParameters(string[] args)
-        {
-            return true;
-        }
+        public override bool ProcessParameters() => true;
 
         protected override bool ExecuteCommand(ICollection<Exception> exceptions)
         {

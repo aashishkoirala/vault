@@ -22,6 +22,7 @@
 #region Namespace Imports
 
 using AK.Vault.Configuration;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -43,21 +44,24 @@ namespace AK.Vault.Console
     {
         private string fileToFind;
         private readonly IFileNameManager fileNameManager;
-        private readonly IConfigurationProvider configurationProvider;
+        private readonly Configuration.IConfigurationProvider configurationProvider;
+        private readonly IConfiguration configuration;
 
         public Action<string> FileFound { get; set; }
 
         [ImportingConstructor]
-        public FindCommand(IFileNameManager fileNameManager, IConfigurationProvider configurationProvider, 
+        public FindCommand(IConfiguration configuration, IFileNameManager fileNameManager, 
+            Configuration.IConfigurationProvider configurationProvider, 
             IFileEncryptorFactory fileEncryptorFactory) : base(fileEncryptorFactory)
         {
+            this.configuration = configuration;
             this.fileNameManager = fileNameManager;
             this.configurationProvider = configurationProvider;
         }
 
-        public override bool AssignParameters(string[] args)
+        public override bool ProcessParameters()
         {
-            this.fileToFind = args.FirstOrDefault();
+            this.fileToFind = this.configuration["target"];
             return !string.IsNullOrWhiteSpace(this.fileToFind);
         }
 

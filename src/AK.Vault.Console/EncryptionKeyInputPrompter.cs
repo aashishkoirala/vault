@@ -33,14 +33,15 @@ namespace AK.Vault.Console
         /// Prompts the user for all components and creates an encryption key input structure for use
         /// by the application.
         /// </summary>
-        /// <param name="cancelled">This is set to whether the user cancelled instead of entering.</param>
-        /// <returns>Encryption key input structure.</returns>
-        public static EncryptionKeyInput Prompt(out bool cancelled)
+        /// <returns>Encryption key input structure (or NULL if cancelled).</returns>
+        public static EncryptionKeyInput Prompt()
         {
             Screen.Print("Please provide the information you want to use to encrypt or decrypt.");
             Screen.Print("Information that you type will be masked and not visible.");
             Screen.Print("Press ESC to Cancel.");
             Screen.Print();
+
+            bool cancelled;
 
             var fullName = ProtectedPrompt("Full Name", out cancelled);
             if (cancelled) return null;

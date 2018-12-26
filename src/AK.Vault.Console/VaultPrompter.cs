@@ -42,15 +42,12 @@ namespace AK.Vault.Console
         /// <param name="cancelled">This is set to whether the user cancelled instead of entering.</param>
         /// <param name="configurationProvider">Configuration provider object.</param>
         /// <returns>Encryption key input structure.</returns>
-        public static string Prompt(IConfigurationProvider configurationProvider, out bool cancelled)
+        public static string Prompt(VaultConfiguration vaultConfiguration)
         {
-            cancelled = false;
-
-            var vaults = configurationProvider.Configuration.Vaults;
+            var vaults = vaultConfiguration.Vaults;
             if (!vaults.Any())
             {
                 Screen.Print("Oops - no vaults configured!");
-                cancelled = true;
                 return null;
             }
 
@@ -70,11 +67,7 @@ namespace AK.Vault.Console
             while (true)
             {
                 var keyInfo = Screen.ReadKey();
-                if (keyInfo.Key == ConsoleKey.Escape)
-                {
-                    cancelled = true;
-                    return null;
-                }
+                if (keyInfo.Key == ConsoleKey.Escape) return null;
 
                 string vaultName;
                 if (menuItems.TryGetValue(keyInfo.KeyChar, out vaultName)) return vaultName;

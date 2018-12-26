@@ -35,7 +35,7 @@ namespace AK.Vault
     /// Performs symmetric encryption/decryption.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    internal interface ISymmetricEncryptor
+    public interface ISymmetricEncryptor
     {
         /// <summary>
         /// Reads data from one stream, encrypts it, and writes the encrypted data to another stream.
@@ -71,7 +71,7 @@ namespace AK.Vault
     }
 
     [Export(typeof (ISymmetricEncryptor))]
-    internal class SymmetricEncryptor : ISymmetricEncryptor
+    public class SymmetricEncryptor : ISymmetricEncryptor
     {
         private static readonly IDictionary<AlgorithmType, Func<SymmetricAlgorithm>>
             AlgorithmMap = new Dictionary<AlgorithmType, Func<SymmetricAlgorithm>>

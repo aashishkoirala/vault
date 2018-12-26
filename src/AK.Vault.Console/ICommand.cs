@@ -42,12 +42,8 @@ namespace AK.Vault.Console
         /// Assigns parameters from the command line - it is up to the command
         /// to interpret them and set own state.
         /// </summary>
-        /// <param name="args">
-        /// Command line arguments with everything other
-        /// than the command name itself.
-        /// </param>
         /// <returns>Whether parameters were successfully parsed and assigned.</returns>
-        bool AssignParameters(string[] args);
+        bool ProcessParameters();
 
         /// <summary>
         /// Executes the command.

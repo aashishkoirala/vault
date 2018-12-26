@@ -27,7 +27,7 @@ namespace AK.Vault
     /// Structure that holds parameters for symmetric encryption.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    internal class SymmetricEncryptionParameters
+    public class SymmetricEncryptionParameters
     {
         /// <summary>
         /// The symmetric algorithm to use.

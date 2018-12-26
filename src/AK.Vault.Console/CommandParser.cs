@@ -26,98 +26,92 @@ using System.Composition;
 using System.Composition.Hosting;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using AK.Vault.Configuration;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 #endregion
 
 namespace AK.Vault.Console
 {
     /// <summary>
-    /// Entry point; also parses command line arguments to create the correct ICommand instance
+    /// Parses command line arguments to create the correct ICommand instance
     /// and execute it.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    internal static class CommandParser
+    internal class CommandParser
     {
-        /// <summary>
-        /// Entry point method.
-        /// </summary>
-        /// <param name="args">Command line arguments.</param>
-        /// <returns>0 if success, 1 if not.</returns>
-        public static int Main(string[] args)
+        private readonly CancellationTokenSource cancellationTokenSource;
+
+        public CommandParser(CancellationTokenSource cancellationTokenSource)
+        {
+            this.cancellationTokenSource = cancellationTokenSource;
+        }
+
+        public int ReturnCode { get; private set; }
+
+        public void ParseAndExecute(IConfiguration configuration, IServiceProvider serviceProvider)
         {
             try
             {
-                Screen.Print(Screen.Colors.Heading, "VAULT by Aashish Koirala (c) 2014");
+                Screen.Print(Screen.Colors.Heading, "VAULT by Aashish Koirala (c) 2014-2019");
                 Screen.Print();
-                return Parse(args).Execute() ? 0 : 1;
+                var command = Parse(configuration, serviceProvider);
+                if (command == null)
+                {
+                    PrintUsage();
+                    ReturnCode = 1;
+                }
+                else ReturnCode = command.Execute() ? 0 : 1;
             }
             catch (Exception ex)
             {
                 Screen.Print(Screen.Colors.Error, "Unexpected error:{0}{1}{0}", Environment.NewLine, ex);
-                return 1;
+                ReturnCode = 1;
             }
+            this.cancellationTokenSource.Cancel();
         }
 
-        private static ICommand Parse(string[] args)
+        private static ICommand Parse(IConfiguration configuration, IServiceProvider serviceProvider)
         {
-            ICommand command;
-            return !TryParse(args, out command) ? new DoNothingCommand() : command;
-        }
-
-        private static bool TryParse(string[] args, out ICommand command)
-        {
-            command = null;
             try
             {
-                if (args.Length == 0) args = new[] {"launch"};
-
-                var commandName = args[0];
-                var assemblies = new[] {Assembly.GetExecutingAssembly(), typeof (IConfigurationProvider).Assembly};
-
-                var containerConfig = new ContainerConfiguration().WithAssemblies(assemblies);
-                using (var container = containerConfig.CreateContainer())
+                var commandName = configuration["command"] ?? "launch";
+                var command = serviceProvider.GetService<Func<string, ICommand>>()(commandName);
+                if (command == null)
                 {
-                    var export = container
-                        .GetExports<ExportFactory<ICommand, CommandInfoAttribute>>()
-                        .SingleOrDefault(x => x.Metadata.CommandName == commandName);
-
-                    if (export == null)
-                    {
-                        Screen.Print(Screen.Colors.Error, "Invalid command: {0}", commandName);
-                        PrintUsage();
-                        return false;
-                    }
-
-                    command = export.CreateExport().Value;
-                    var assignParametersResult = command.AssignParameters(args.Skip(1).ToArray());
-                    if (!assignParametersResult)
-                    {
-                        Screen.Print(Screen.Colors.Error, "Invalid parameters for {0}.", commandName);
-                        PrintUsage();
-                        return false;
-                    }
-
-                    bool cancelled;
-                    var vaultName = VaultPrompter.Prompt(container.GetExport<IConfigurationProvider>(), out cancelled);
-                    if (cancelled) return false;
-                    command.VaultName = vaultName;
-                    Screen.Clear();
-
-                    if (!export.Metadata.RequiresEncryptionKeyInput) return true;
-
-                    var encryptionKeyInput = EncryptionKeyInputPrompter.Prompt(out cancelled);
-                    if (cancelled) return false;
-                    command.AssignEncryptionKeyInput(encryptionKeyInput);
-
-                    return true;
+                    Screen.Print(Screen.Colors.Error, $"Invalid command: {commandName}");
+                    return null;
                 }
+                if (!command.ProcessParameters())
+                {
+                    Screen.Print(Screen.Colors.Error, "Invalid parameters for {commandName}.", commandName);
+                    return null;
+                }
+
+                var commandInfo = command.GetType().GetCustomAttribute<CommandInfoAttribute>();
+
+                var vaultName = VaultPrompter.Prompt(serviceProvider.GetService<IOptionsMonitor<VaultConfiguration>>().CurrentValue);
+                if (vaultName == null) return null;
+                command.VaultName = vaultName;
+                Screen.Clear();
+
+                if (!commandInfo.RequiresEncryptionKeyInput) return command;
+
+                var encryptionKeyInput = EncryptionKeyInputPrompter.Prompt();
+                if (encryptionKeyInput == null) return null;
+                command.AssignEncryptionKeyInput(encryptionKeyInput);
+
+                return command;
             }
             catch (Exception ex)
             {
                 Screen.Print(Screen.Colors.Error, "Error parsing command: {0}", ex.Message);
-                PrintUsage();
-                return false;
+                return null;
             }
         }
 
@@ -146,25 +140,6 @@ namespace AK.Vault.Console
             Screen.Print("\tvault report");
             Screen.Print("\t\tSpits out a tabular report of all files in the vault with their encrypted names.");
             Screen.Print();
-        }
-
-        private class DoNothingCommand : ICommand
-        {
-            public string VaultName { get; set; }
-
-            public void AssignEncryptionKeyInput(EncryptionKeyInput encryptionKeyInput)
-            {
-            }
-
-            public bool AssignParameters(string[] args)
-            {
-                return false;
-            }
-
-            public bool Execute()
-            {
-                return false;
-            }
         }
     }
 }

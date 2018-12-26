@@ -21,6 +21,7 @@
 
 #region Namespace Imports
 
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -39,14 +40,19 @@ namespace AK.Vault.Console
     [CommandInfo(CommandName ="decrypt", RequiresEncryptionKeyInput = true)]
     internal class DecryptCommand : CommandBase
     {
+        private readonly IConfiguration configuration;
         private string[] filePatterns;
 
         [ImportingConstructor]
-        public DecryptCommand(IFileEncryptorFactory fileEncryptorFactory) : base(fileEncryptorFactory) { }
-
-        public override bool AssignParameters(string[] args)
+        public DecryptCommand(IConfiguration configuration, IFileEncryptorFactory fileEncryptorFactory) : 
+            base(fileEncryptorFactory)
         {
-            this.filePatterns = args;
+            this.configuration = configuration;
+        }
+
+        public override bool ProcessParameters()
+        {
+            this.filePatterns = this.configuration["target"].Split(';');
             return true;
         }
 

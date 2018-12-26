@@ -21,6 +21,7 @@
 
 #region Namespace Imports
 
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -41,20 +42,23 @@ namespace AK.Vault.Console
     {
         private string[] filesToFindAndDecrypt;
         private EncryptionKeyInput localEncryptionKeyInput;
+        private readonly IConfiguration configuration;
         private readonly FindCommand findCommand;
         private readonly DecryptCommand decryptCommand;
 
         [ImportingConstructor]
         public FindAndDecryptCommand(IFileEncryptorFactory fileEncryptorFactory,
-            FindCommand findCommand, DecryptCommand decryptCommand) : base(fileEncryptorFactory)
+            IConfiguration configuration, FindCommand findCommand, DecryptCommand decryptCommand) : 
+            base(fileEncryptorFactory)
         {
+            this.configuration = configuration;
             this.findCommand = findCommand;
             this.decryptCommand = decryptCommand;
         }
 
-        public override bool AssignParameters(string[] args)
+        public override bool ProcessParameters()
         {
-            this.filesToFindAndDecrypt = args;
+            this.filesToFindAndDecrypt = this.configuration["target"].Split(';');
             return true;
         }
 
@@ -81,7 +85,7 @@ namespace AK.Vault.Console
             this.findCommand.FileFound = filesToDecrypt.Add;
             foreach (var fileToFind in this.filesToFindAndDecrypt)
             {
-                this.findCommand.AssignParameters(new[] {fileToFind});
+                //this.findCommand.AssignParameters(new[] {fileToFind});
                 var findResult = this.findCommand.Execute();
                 if (!findResult) return false;
             }
@@ -91,7 +95,7 @@ namespace AK.Vault.Console
             filesToDecrypt = filesToDecrypt.Select(Path.GetFileName).ToList();
 
             this.decryptCommand.VaultName = this.VaultName;
-            this.decryptCommand.AssignParameters(filesToDecrypt.ToArray());
+            //this.decryptCommand.AssignParameters(filesToDecrypt.ToArray());
             this.decryptCommand.AssignEncryptionKeyInput(this.localEncryptionKeyInput);
             return this.decryptCommand.Execute();
         }
