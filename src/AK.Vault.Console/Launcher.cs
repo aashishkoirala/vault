@@ -28,6 +28,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 #endregion
 
@@ -267,7 +268,15 @@ namespace AK.Vault.Console
 
         private static void LaunchPath(string path)
         {
-            var process = Process.Start(path);
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Screen.Print(ConsoleColor.Red, "Sorry launching from here is not permitted on this OS.");
+                return;
+            }
+
+            var process = path.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ?
+                Process.Start(path) :
+                Process.Start(new ProcessStartInfo("cmd", $"/c start \"\" \"{path}\"") { CreateNoWindow = true });
             if (process == null) return;
 
             process.Exited += (sender, e) => process.Dispose();
