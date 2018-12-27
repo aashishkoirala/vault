@@ -1,6 +1,5 @@
 ﻿/*******************************************************************************************************************************
- * AK.Vault.FileNameManager
- * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2019 Aashish Koirala <https://www.aashishkoirala.com>
  * 
  * This file is part of VAULT.
  *  
@@ -15,18 +14,14 @@
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
- * along with VAULT.  If not, see <http://www.gnu.org/licenses/>.
+ * along with VAULT.  If not, see <https://www.gnu.org/licenses/>.
  * 
  *******************************************************************************************************************************/
-
-#region Namespace Imports
 
 using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-
-#endregion
 
 namespace AK.Vault
 {

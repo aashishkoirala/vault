@@ -1,6 +1,5 @@
 ﻿/*******************************************************************************************************************************
- * AK.Vault.SymmetricEncryptor
- * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2019 Aashish Koirala <https://www.aashishkoirala.com>
  * 
  * This file is part of VAULT.
  *  
@@ -15,7 +14,7 @@
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
- * along with VAULT.  If not, see <http://www.gnu.org/licenses/>.
+ * along with VAULT.  If not, see <https://www.gnu.org/licenses/>.
  * 
  *******************************************************************************************************************************/
 
@@ -88,7 +87,7 @@ namespace AK.Vault
         {
             using (MemoryStream inDataStream = new MemoryStream(inData), outDataStream = new MemoryStream())
             {
-                this.Encrypt(parameters, inDataStream, outDataStream);
+                Encrypt(parameters, inDataStream, outDataStream);
 
                 return outDataStream.ToArray();
             }
@@ -104,7 +103,7 @@ namespace AK.Vault
         {
             using (MemoryStream inDataStream = new MemoryStream(inData), outDataStream = new MemoryStream())
             {
-                this.Decrypt(parameters, inDataStream, outDataStream);
+                Decrypt(parameters, inDataStream, outDataStream);
 
                 return outDataStream.ToArray();
             }

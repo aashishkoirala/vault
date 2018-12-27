@@ -1,6 +1,5 @@
 ﻿/*******************************************************************************************************************************
- * AK.Vault.FileEncryptor
- * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2019 Aashish Koirala <https://www.aashishkoirala.com>
  * 
  * This file is part of VAULT.
  *  
@@ -15,11 +14,9 @@
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
- * along with VAULT.  If not, see <http://www.gnu.org/licenses/>.
+ * along with VAULT.  If not, see <https://www.gnu.org/licenses/>.
  * 
  *******************************************************************************************************************************/
-
-#region Namespace Imports
 
 using System;
 using System.Collections.Concurrent;
@@ -30,8 +27,6 @@ using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
-#endregion
-
 namespace AK.Vault
 {
     /// <summary>
@@ -40,24 +35,19 @@ namespace AK.Vault
     /// <author>Aashish Koirala</author>
     public class FileEncryptor
     {
-        private readonly SymmetricEncryptor symmetricEncryptor;
-        private readonly VaultOptions vaultConfiguration;
-        private readonly FileNameManager fileNameManager;
-        private readonly SymmetricEncryptionParameters parameters;
-        private readonly BlockingCollection<Message> messages = new BlockingCollection<Message>();
-        private readonly string vaultName;
+        private readonly SymmetricEncryptor _symmetricEncryptor;
+        private readonly VaultOptions _vaultOptions;
+        private readonly FileNameManager _fileNameManager;
+        private readonly SymmetricEncryptionParameters _parameters;
+        private readonly BlockingCollection<Message> _messages = new BlockingCollection<Message>();
+        private readonly string _vaultName;
 
-        internal FileEncryptor(
-            SymmetricEncryptor symmetricEncryptor,
-            EncryptionKeyGenerator encryptionKeyGenerator,
-            VaultOptions vaultConfiguration,
-            FileNameManager fileNameManager,
-            EncryptionKeyInput encryptionKeyInput,
-            string vaultName)
+        internal FileEncryptor(SymmetricEncryptor symmetricEncryptor, EncryptionKeyGenerator encryptionKeyGenerator, 
+            VaultOptions vaultOptions, FileNameManager fileNameManager, EncryptionKeyInput encryptionKeyInput, string vaultName)
         {
             var key = encryptionKeyGenerator.Generate(encryptionKeyInput);
 
-            this.parameters = new SymmetricEncryptionParameters
+            _parameters = new SymmetricEncryptionParameters
             {
                 Algorithm = AlgorithmType.Aes,
                 Mode = CipherMode.CBC,
@@ -65,10 +55,10 @@ namespace AK.Vault
                 Key = key
             };
 
-            this.symmetricEncryptor = symmetricEncryptor;
-            this.vaultConfiguration = vaultConfiguration;
-            this.fileNameManager = fileNameManager;
-            this.vaultName = vaultName;
+            _symmetricEncryptor = symmetricEncryptor;
+            _vaultOptions = vaultOptions;
+            _fileNameManager = fileNameManager;
+            _vaultName = vaultName;
         }
 
         /// <summary>
@@ -93,7 +83,7 @@ namespace AK.Vault
                 .SelectMany(GetEncryptionResultListForEncryption)
                 .ToArray();
 
-            this.ExecuteBatch(results, this.EncryptFile);
+            ExecuteBatch(results, EncryptFile);
 
             return results;
         }
@@ -112,10 +102,10 @@ namespace AK.Vault
         public IEnumerable<FileEncryptionResult> Decrypt(IEnumerable<string> filePatterns)
         {
             var results = filePatterns
-                .SelectMany(this.GetEncryptionResultListForDecryption)
+                .SelectMany(GetEncryptionResultListForDecryption)
                 .ToArray();
 
-            this.ExecuteBatch(results, this.DecryptFile);
+            ExecuteBatch(results, DecryptFile);
 
             return results;
         }
@@ -146,8 +136,8 @@ namespace AK.Vault
 
         private IEnumerable<FileEncryptionResult> GetEncryptionResultListForDecryption(string filePattern)
         {
-            var encryptedFileLocation = this.vaultConfiguration.Vaults
-                .Single(x => x.Name == this.vaultName).EncryptedFileLocation;
+            var encryptedFileLocation = _vaultOptions.Vaults
+                .Single(x => x.Name == _vaultName).EncryptedFileLocation;
 
             return Directory
                 .GetFiles(encryptedFileLocation, filePattern, SearchOption.TopDirectoryOnly)
@@ -162,12 +152,12 @@ namespace AK.Vault
             using (var cancellationTokenSource = new CancellationTokenSource())
             {
                 using (var task = Task.Factory.StartNew(
-                    () => this.ProcessMessageUpdate(cancellationTokenSource), cancellationTokenSource.Token))
+                    () => ProcessMessageUpdate(cancellationTokenSource), cancellationTokenSource.Token))
                 {
                     Parallel.ForEach(results, action);
                     cancellationTokenSource.Cancel();
 
-                    this.Info();
+                    Info();
                     
                     // ReSharper disable once MethodSupportsCancellation
                     //
@@ -184,10 +174,10 @@ namespace AK.Vault
             {
                 if (cancellationTokenSource.IsCancellationRequested) break;
 
-                var message = this.messages.Take();
+                var message = _messages.Take();
                 if (message == Message.Empty) continue;
 
-                this.UpdateMessageAction?.Invoke(message);
+                UpdateMessageAction?.Invoke(message);
             }
         }
 
@@ -196,30 +186,30 @@ namespace AK.Vault
             if (encryptionResult.IsDone) return;
             try
             {
-                var encryptedFileLocation = this.vaultConfiguration.Vaults
-                    .Single(x => x.Name == this.vaultName).EncryptedFileLocation;
+                var encryptedFileLocation = _vaultOptions.Vaults
+                    .Single(x => x.Name == _vaultName).EncryptedFileLocation;
 
                 encryptionResult.EncryptedFilePath = Path.Combine(encryptedFileLocation,
-                    this.fileNameManager.GenerateNameForEncryptedFile(encryptionResult.UnencryptedFilePath));
+                    _fileNameManager.GenerateNameForEncryptedFile(encryptionResult.UnencryptedFilePath));
 
                 if (File.Exists(encryptionResult.EncryptedFilePath)) File.Delete(encryptionResult.EncryptedFilePath);
 
-                this.Info("[{0}]: Encrypting...", encryptionResult.UnencryptedFilePath);
+                Info("[{0}]: Encrypting...", encryptionResult.UnencryptedFilePath);
                 using (FileStream
                     inFile = File.OpenRead(encryptionResult.UnencryptedFilePath),
                     outFile = File.OpenWrite(encryptionResult.EncryptedFilePath))
                 {
-                    this.fileNameManager.WriteOriginalFileNameToStream(encryptionResult.UnencryptedFilePath, outFile);
-                    this.symmetricEncryptor.Encrypt(this.parameters, inFile, outFile);
+                    _fileNameManager.WriteOriginalFileNameToStream(encryptionResult.UnencryptedFilePath, outFile);
+                    _symmetricEncryptor.Encrypt(_parameters, inFile, outFile);
                 }
 
                 encryptionResult.IsDone = true;
-                this.Info("[{0}]: Encrypted.", encryptionResult.UnencryptedFilePath);
+                Info("[{0}]: Encrypted.", encryptionResult.UnencryptedFilePath);
             }
             catch (Exception ex)
             {
                 encryptionResult.Exception = ex;
-                this.Error("[{0}]: Could not encrypt.");
+                Error("[{0}]: Could not encrypt.");
             }
         }
 
@@ -229,11 +219,11 @@ namespace AK.Vault
             {
                 var sourceFileName = encryptionResult.EncryptedFilePath;
 
-                this.Info("[{0}]: Deciphering name...", sourceFileName);
+                Info("[{0}]: Deciphering name...", sourceFileName);
                 using (var inFile = File.OpenRead(sourceFileName))
                 {
-                    encryptionResult.UnencryptedFilePath = this.fileNameManager.ReadOriginalFileNameFromStream(inFile);
-                    this.Info("[{0}]: Decrypting...", encryptionResult.UnencryptedFilePath);
+                    encryptionResult.UnencryptedFilePath = _fileNameManager.ReadOriginalFileNameFromStream(inFile);
+                    Info("[{0}]: Decrypting...", encryptionResult.UnencryptedFilePath);
 
                     var targetDirectory = Path.GetDirectoryName(encryptionResult.UnencryptedFilePath);
                     if (targetDirectory == null)
@@ -245,8 +235,8 @@ namespace AK.Vault
                             targetDirectory.IndexOf(Path.DirectorySeparatorChar) + 1);
                     }
 
-                    var decryptedFileLocation = this.vaultConfiguration.Vaults
-                        .Single(x => x.Name == this.vaultName).DecryptedFileLocation;
+                    var decryptedFileLocation = _vaultOptions.Vaults
+                        .Single(x => x.Name == _vaultName).DecryptedFileLocation;
 
                     targetDirectory = Path.Combine(decryptedFileLocation, targetDirectory);
                     if (!Directory.Exists(targetDirectory)) Directory.CreateDirectory(targetDirectory);
@@ -255,27 +245,27 @@ namespace AK.Vault
                         targetDirectory, Path.GetFileName(encryptionResult.UnencryptedFilePath));
 
                     using (var outFile = File.OpenWrite(encryptionResult.UnencryptedFilePath))
-                        this.symmetricEncryptor.Decrypt(this.parameters, inFile, outFile);
+                        _symmetricEncryptor.Decrypt(_parameters, inFile, outFile);
                 }
 
                 encryptionResult.IsDone = true;
-                this.Info("[{0}]: Decrypted.", encryptionResult.UnencryptedFilePath);
+                Info("[{0}]: Decrypted.", encryptionResult.UnencryptedFilePath);
             }
             catch (Exception ex)
             {
                 encryptionResult.Exception = ex;
-                this.Error("[{0}]: Could not decrypt.", encryptionResult.EncryptedFilePath);
+                Error("[{0}]: Could not decrypt.", encryptionResult.EncryptedFilePath);
             }
         }
 
         private void Info(string message = null, params object[] args)
         {
-            this.messages.Add(message == null ? Message.Empty : new Message(string.Format(message, args)));
+            _messages.Add(message == null ? Message.Empty : new Message(string.Format(message, args)));
         }
 
         private void Error(string message, params object[] args)
         {
-            this.messages.Add(message == null ? Message.Empty : new Message(string.Format(message, args), true));
+            _messages.Add(message == null ? Message.Empty : new Message(string.Format(message, args), true));
         }
     }
 }

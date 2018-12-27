@@ -1,6 +1,5 @@
 ﻿/*******************************************************************************************************************************
- * AK.Vault.Console.VaultPrompter
- * Copyright © 2016 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2019 Aashish Koirala <https://www.aashishkoirala.com>
  * 
  * This file is part of VAULT.
  *  
@@ -15,16 +14,12 @@
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
- * along with VAULT.  If not, see <http://www.gnu.org/licenses/>.
+ * along with VAULT.  If not, see <https://www.gnu.org/licenses/>.
  * 
  *******************************************************************************************************************************/
 
-#region Namespace Imports
-
 using System;
 using System.Linq;
-
-#endregion Namespace Imports
 
 namespace AK.Vault.Console
 {
@@ -41,9 +36,9 @@ namespace AK.Vault.Console
         /// <param name="cancelled">This is set to whether the user cancelled instead of entering.</param>
         /// <param name="configurationProvider">Configuration provider object.</param>
         /// <returns>Encryption key input structure.</returns>
-        public static string Prompt(VaultOptions vaultConfiguration)
+        public static string Prompt(VaultOptions vaultOptions)
         {
-            var vaults = vaultConfiguration.Vaults;
+            var vaults = vaultOptions.Vaults;
             if (!vaults.Any())
             {
                 Screen.Print("Oops - no vaults configured!");

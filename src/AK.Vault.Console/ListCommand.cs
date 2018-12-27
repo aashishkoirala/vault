@@ -1,6 +1,5 @@
 ﻿/*******************************************************************************************************************************
- * AK.Vault.Console.ListCommand
- * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2019 Aashish Koirala <https://www.aashishkoirala.com>
  * 
  * This file is part of VAULT.
  *  
@@ -15,16 +14,12 @@
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
- * along with VAULT.  If not, see <http://www.gnu.org/licenses/>.
+ * along with VAULT.  If not, see <https://www.gnu.org/licenses/>.
  * 
  *******************************************************************************************************************************/
 
-#region Namespace Imports
-
 using System;
 using System.Collections.Generic;
-
-#endregion
 
 namespace AK.Vault.Console
 {
@@ -37,19 +32,16 @@ namespace AK.Vault.Console
     {
         protected override bool PromptBeforeStart => false;
 
-        private readonly ListGenerator listGenerator;
+        private readonly ListGenerator _listGenerator;
 
         public ListCommand(ListGenerator listGenerator, FileEncryptorFactory fileEncryptorFactory) :
-            base(fileEncryptorFactory)
-        {
-            this.listGenerator = listGenerator;
-        }
+            base(fileEncryptorFactory) => _listGenerator = listGenerator;
 
         public override bool ProcessParameters() => true;
 
         protected override bool ExecuteCommand(ICollection<Exception> exceptions)
         {
-            PrintListItem(this.listGenerator.Generate(this.VaultName));
+            PrintListItem(_listGenerator.Generate(VaultName));
             return true;
         }
 

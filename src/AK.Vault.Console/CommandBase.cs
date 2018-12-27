@@ -1,6 +1,5 @@
 ﻿/*******************************************************************************************************************************
- * AK.Vault.Console.CommandBase
- * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2019 Aashish Koirala <https://www.aashishkoirala.com>
  * 
  * This file is part of VAULT.
  *  
@@ -15,11 +14,9 @@
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
- * along with VAULT.  If not, see <http://www.gnu.org/licenses/>.
+ * along with VAULT.  If not, see <https://www.gnu.org/licenses/>.
  * 
  *******************************************************************************************************************************/
-
-#region Namespace Imports
 
 using System;
 using System.Collections.Generic;
@@ -29,8 +26,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-#endregion
-
 namespace AK.Vault.Console
 {
     /// <summary>
@@ -39,8 +34,8 @@ namespace AK.Vault.Console
     /// <author>Aashish Koirala</author>
     internal abstract class CommandBase : ICommand
     {
-        private readonly FileEncryptorFactory fileEncryptorFactory;
-        protected FileEncryptor FileEncryptor;
+        private readonly FileEncryptorFactory _fileEncryptorFactory;
+        protected FileEncryptor _fileEncryptor;
 
         protected virtual bool PromptBeforeStart => true;
 
@@ -50,23 +45,20 @@ namespace AK.Vault.Console
 
         public virtual string VaultName { get; set; }
 
-        protected CommandBase(FileEncryptorFactory fileEncryptorFactory)
-        {
-            this.fileEncryptorFactory = fileEncryptorFactory;
-        }
+        protected CommandBase(FileEncryptorFactory fileEncryptorFactory) => _fileEncryptorFactory = fileEncryptorFactory;
 
         public virtual void AssignEncryptionKeyInput(EncryptionKeyInput encryptionKeyInput)
         {
-            this.FileEncryptor = this.fileEncryptorFactory.Create(encryptionKeyInput, this.VaultName);
-            this.FileEncryptor.UpdateMessageAction =
+            _fileEncryptor = _fileEncryptorFactory.Create(encryptionKeyInput, VaultName);
+            _fileEncryptor.UpdateMessageAction =
                 message =>
                 Screen.Print(message.IsError ? Screen.Colors.Error : Screen.Colors.Normal, message.Description);
         }
 
         public bool Execute()
         {
-            this.WriteHeader();
-            if (this.PromptBeforeStart && !this.PromptContinueOrCancel()) return false;
+            WriteHeader();
+            if (PromptBeforeStart && !PromptContinueOrCancel()) return false;
 
             var exceptions = new Collection<Exception>();
 
@@ -76,7 +68,7 @@ namespace AK.Vault.Console
             var result = false;
             try
             {
-                result = this.ExecuteCommand(exceptions);
+                result = ExecuteCommand(exceptions);
             }
             catch (Exception ex)
             {
@@ -103,7 +95,7 @@ namespace AK.Vault.Console
                 Screen.Print(Screen.Colors.Error, "There were errors. See {0} for details.", errorLog);
             }
 
-            if (this.PromptAfterEnd) this.PromptContinue();
+            if (PromptAfterEnd) PromptContinue();
             return result;
         }
 

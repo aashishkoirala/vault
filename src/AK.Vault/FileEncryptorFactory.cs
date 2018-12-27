@@ -1,6 +1,5 @@
 ﻿/*******************************************************************************************************************************
- * AK.Vault.FileEncryptorFactory
- * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2019 Aashish Koirala <https://www.aashishkoirala.com>
  * 
  * This file is part of VAULT.
  *  
@@ -15,7 +14,7 @@
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
- * along with VAULT.  If not, see <http://www.gnu.org/licenses/>.
+ * along with VAULT.  If not, see <https://www.gnu.org/licenses/>.
  * 
  *******************************************************************************************************************************/
 
@@ -29,19 +28,19 @@ namespace AK.Vault
     /// <author>Aashish Koirala</author>
     public class FileEncryptorFactory
     {
-        private readonly EncryptionKeyGenerator encryptionKeyGenerator;
-        private readonly VaultOptions vaultConfiguration;
-        private readonly FileNameManager fileNameManager;
-        private readonly SymmetricEncryptor symmetricEncryptor;
+        private readonly EncryptionKeyGenerator _encryptionKeyGenerator;
+        private readonly VaultOptions _vaultOptions;
+        private readonly FileNameManager _fileNameManager;
+        private readonly SymmetricEncryptor _symmetricEncryptor;
 
         public FileEncryptorFactory(EncryptionKeyGenerator encryptionKeyGenerator,
-            IOptionsMonitor<VaultOptions> vaultConfiguration,
+            IOptionsMonitor<VaultOptions> vaultOptionsMonitor,
             FileNameManager fileNameManager, SymmetricEncryptor symmetricEncryptor)
         {
-            this.encryptionKeyGenerator = encryptionKeyGenerator;
-            this.vaultConfiguration = vaultConfiguration.CurrentValue;
-            this.fileNameManager = fileNameManager;
-            this.symmetricEncryptor = symmetricEncryptor;
+            _encryptionKeyGenerator = encryptionKeyGenerator;
+            _vaultOptions = vaultOptionsMonitor.CurrentValue;
+            _fileNameManager = fileNameManager;
+            _symmetricEncryptor = symmetricEncryptor;
         }
 
         /// <summary>
@@ -51,7 +50,7 @@ namespace AK.Vault
         /// <param name="vaultName">Vault name.</param>
         /// <returns>FileEncryptor instance.</returns>
         public FileEncryptor Create(EncryptionKeyInput encryptionKeyInput, string vaultName) =>
-            new FileEncryptor(this.symmetricEncryptor, this.encryptionKeyGenerator,
-                this.vaultConfiguration, this.fileNameManager, encryptionKeyInput, vaultName);
+            new FileEncryptor(_symmetricEncryptor, _encryptionKeyGenerator,
+                _vaultOptions, _fileNameManager, encryptionKeyInput, vaultName);
     }
 }

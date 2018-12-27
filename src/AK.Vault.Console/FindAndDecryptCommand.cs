@@ -1,6 +1,5 @@
 ﻿/*******************************************************************************************************************************
- * AK.Vault.Console.FindAndDecryptCommand
- * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2019 Aashish Koirala <https://www.aashishkoirala.com>
  * 
  * This file is part of VAULT.
  *  
@@ -15,19 +14,15 @@
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
- * along with VAULT.  If not, see <http://www.gnu.org/licenses/>.
+ * along with VAULT.  If not, see <https://www.gnu.org/licenses/>.
  * 
  *******************************************************************************************************************************/
 
-#region Namespace Imports
-
-using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
-#endregion
+using Microsoft.Extensions.Configuration;
 
 namespace AK.Vault.Console
 {
@@ -35,41 +30,42 @@ namespace AK.Vault.Console
     /// ICommand instance for the "find-and-decrypt" command; performs find-and-decryption.
     /// </summary>
     /// <author>Aashish Koirala</author>
+    /// TODO: Fix this command as it doesn't work afer refactoring.
     [CommandInfo(CommandName = "fd", RequiresEncryptionKeyInput = true)]
     internal class FindAndDecryptCommand : CommandBase
     {
-        private string[] filesToFindAndDecrypt;
-        private EncryptionKeyInput localEncryptionKeyInput;
-        private readonly IConfiguration configuration;
-        private readonly FindCommand findCommand;
-        private readonly DecryptCommand decryptCommand;
+        private string[] _filesToFindAndDecrypt;
+        private EncryptionKeyInput _localEncryptionKeyInput;
+        private readonly IConfiguration _configuration;
+        private readonly FindCommand _findCommand;
+        private readonly DecryptCommand _decryptCommand;
 
         public FindAndDecryptCommand(FileEncryptorFactory fileEncryptorFactory,
             IConfiguration configuration, FindCommand findCommand, DecryptCommand decryptCommand) : 
             base(fileEncryptorFactory)
         {
-            this.configuration = configuration;
-            this.findCommand = findCommand;
-            this.decryptCommand = decryptCommand;
+            _configuration = configuration;
+            _findCommand = findCommand;
+            _decryptCommand = decryptCommand;
         }
 
         public override bool ProcessParameters()
         {
-            this.filesToFindAndDecrypt = this.configuration["target"].Split(';');
+            _filesToFindAndDecrypt = _configuration["target"].Split(';');
             return true;
         }
 
         public override void AssignEncryptionKeyInput(EncryptionKeyInput encryptionKeyInput)
         {
             base.AssignEncryptionKeyInput(encryptionKeyInput);
-            this.localEncryptionKeyInput = encryptionKeyInput;
+            _localEncryptionKeyInput = encryptionKeyInput;
         }
 
         protected override void WriteHeader()
         {
             Screen.Print();
             Screen.Print("Starting find-and-decryption of the following:");
-            foreach (var filePattern in this.filesToFindAndDecrypt)
+            foreach (var filePattern in _filesToFindAndDecrypt)
                 Screen.Print("{0}{1}", '\t', filePattern);
             Screen.Print();
         }
@@ -78,12 +74,12 @@ namespace AK.Vault.Console
         {
             var filesToDecrypt = new List<string>();
 
-            this.findCommand.VaultName = this.VaultName;
-            this.findCommand.FileFound = filesToDecrypt.Add;
-            foreach (var fileToFind in this.filesToFindAndDecrypt)
+            _findCommand.VaultName = VaultName;
+            _findCommand.FileFound = filesToDecrypt.Add;
+            foreach (var fileToFind in _filesToFindAndDecrypt)
             {
-                //this.findCommand.AssignParameters(new[] {fileToFind});
-                var findResult = this.findCommand.Execute();
+                //findCommand.AssignParameters(new[] {fileToFind});
+                var findResult = _findCommand.Execute();
                 if (!findResult) return false;
             }
 
@@ -91,10 +87,10 @@ namespace AK.Vault.Console
 
             filesToDecrypt = filesToDecrypt.Select(Path.GetFileName).ToList();
 
-            this.decryptCommand.VaultName = this.VaultName;
-            //this.decryptCommand.AssignParameters(filesToDecrypt.ToArray());
-            this.decryptCommand.AssignEncryptionKeyInput(this.localEncryptionKeyInput);
-            return this.decryptCommand.Execute();
+            _decryptCommand.VaultName = VaultName;
+            //decryptCommand.AssignParameters(filesToDecrypt.ToArray());
+            _decryptCommand.AssignEncryptionKeyInput(_localEncryptionKeyInput);
+            return _decryptCommand.Execute();
         }
     }
 }

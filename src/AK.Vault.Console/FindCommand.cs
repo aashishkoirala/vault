@@ -1,6 +1,5 @@
 ﻿/*******************************************************************************************************************************
- * AK.Vault.Console.FindCommand
- * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2019 Aashish Koirala <https://www.aashishkoirala.com>
  * 
  * This file is part of VAULT.
  *  
@@ -15,20 +14,16 @@
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
- * along with VAULT.  If not, see <http://www.gnu.org/licenses/>.
+ * along with VAULT.  If not, see <https://www.gnu.org/licenses/>.
  * 
  *******************************************************************************************************************************/
 
-#region Namespace Imports
-
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
-#endregion
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace AK.Vault.Console
 {
@@ -39,26 +34,26 @@ namespace AK.Vault.Console
     [CommandInfo(CommandName = "find", RequiresEncryptionKeyInput = false)]
     internal class FindCommand : CommandBase
     {
-        private string fileToFind;
-        private readonly FileNameManager fileNameManager;
-        private readonly VaultOptions vaultConfiguration;
-        private readonly IConfiguration configuration;
+        private string _fileToFind;
+        private readonly FileNameManager _fileNameManager;
+        private readonly VaultOptions _vaultOptions;
+        private readonly IConfiguration _configuration;
 
         public Action<string> FileFound { get; set; }
 
         public FindCommand(IConfiguration configuration, FileNameManager fileNameManager, 
-            IOptionsMonitor<VaultOptions> vaultConfiguration, 
+            IOptionsMonitor<VaultOptions> vaultOptionsMonitor, 
             FileEncryptorFactory fileEncryptorFactory) : base(fileEncryptorFactory)
         {
-            this.configuration = configuration;
-            this.fileNameManager = fileNameManager;
-            this.vaultConfiguration = vaultConfiguration.CurrentValue;
+            _configuration = configuration;
+            _fileNameManager = fileNameManager;
+            _vaultOptions = vaultOptionsMonitor.CurrentValue;
         }
 
         public override bool ProcessParameters()
         {
-            this.fileToFind = this.configuration["target"];
-            return !string.IsNullOrWhiteSpace(this.fileToFind);
+            _fileToFind = _configuration["target"];
+            return !string.IsNullOrWhiteSpace(_fileToFind);
         }
 
         protected override bool PromptAfterEnd => false;
@@ -67,16 +62,16 @@ namespace AK.Vault.Console
 
         protected override bool ExecuteCommand(ICollection<Exception> exceptions)
         {
-            var encryptedFileLocation = this.vaultConfiguration.Vaults
-                .Single(x => x.Name == this.VaultName).EncryptedFileLocation;
+            var encryptedFileLocation = _vaultOptions.Vaults
+                .Single(x => x.Name == VaultName).EncryptedFileLocation;
 
-            var encryptedName = this.fileNameManager.GenerateNameForEncryptedFile(this.fileToFind);
+            var encryptedName = _fileNameManager.GenerateNameForEncryptedFile(_fileToFind);
             var fullPath = Path.Combine(encryptedFileLocation, encryptedName);
 
             fullPath = File.Exists(fullPath) ? fullPath : null;
             Screen.Print(fullPath ?? "Not found.");
 
-            if (fullPath != null) this.FileFound?.Invoke(fullPath);
+            if (fullPath != null) FileFound?.Invoke(fullPath);
 
             return true;
         }

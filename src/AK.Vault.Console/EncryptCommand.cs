@@ -1,6 +1,5 @@
 ﻿/*******************************************************************************************************************************
- * AK.Vault.Console.EncryptCommand
- * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2019 Aashish Koirala <https://www.aashishkoirala.com>
  * 
  * This file is part of VAULT.
  *  
@@ -15,18 +14,14 @@
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
- * along with VAULT.  If not, see <http://www.gnu.org/licenses/>.
+ * along with VAULT.  If not, see <https://www.gnu.org/licenses/>.
  * 
  *******************************************************************************************************************************/
 
-#region Namespace Imports
-
-using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
-#endregion
+using Microsoft.Extensions.Configuration;
 
 namespace AK.Vault.Console
 {
@@ -37,18 +32,15 @@ namespace AK.Vault.Console
     [CommandInfo(CommandName = "encrypt", RequiresEncryptionKeyInput = true)]
     internal class EncryptCommand : CommandBase
     {
-        private readonly IConfiguration configuration;
-        private string[] filePatterns;
+        private readonly IConfiguration _configuration;
+        private string[] _filePatterns;
 
         public EncryptCommand(IConfiguration configuration, FileEncryptorFactory fileEncryptorFactory) :
-            base(fileEncryptorFactory)
-        {
-            this.configuration = configuration;
-        }
+            base(fileEncryptorFactory) => _configuration = configuration;
 
         public override bool ProcessParameters()
         {
-            this.filePatterns = this.configuration["target"].Split(';');
+            _filePatterns = _configuration["target"].Split(';');
             return true;
         }
 
@@ -56,14 +48,14 @@ namespace AK.Vault.Console
         {
             Screen.Print();
             Screen.Print("Starting encryption of the following:");
-            foreach (var filePattern in this.filePatterns)
+            foreach (var filePattern in _filePatterns)
                 Screen.Print("{0}{1}", '\t', filePattern);
             Screen.Print();
         }
 
         protected override bool ExecuteCommand(ICollection<Exception> exceptions)
         {
-            var results = this.FileEncryptor.Encrypt(this.filePatterns).ToArray();
+            var results = _fileEncryptor.Encrypt(_filePatterns).ToArray();
 
             var totalCount = results.Length;
             var doneCount = results.Count(x => x.IsDone);

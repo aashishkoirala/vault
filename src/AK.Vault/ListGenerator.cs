@@ -1,6 +1,5 @@
 ﻿/*******************************************************************************************************************************
- * AK.Vault.ListGenerator
- * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2019 Aashish Koirala <https://www.aashishkoirala.com>
  * 
  * This file is part of VAULT.
  *  
@@ -15,11 +14,9 @@
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
- * along with VAULT.  If not, see <http://www.gnu.org/licenses/>.
+ * along with VAULT.  If not, see <https://www.gnu.org/licenses/>.
  * 
  *******************************************************************************************************************************/
-
-#region Namespace Imports
 
 using System;
 using System.Collections.Generic;
@@ -28,8 +25,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
-
-#endregion
 
 namespace AK.Vault
 {
@@ -40,15 +35,13 @@ namespace AK.Vault
     /// <author>Aashish Koirala</author>
     public class ListGenerator
     {
-        private readonly FileNameManager fileNameManager;
-        private readonly VaultOptions vaultConfiguration;
+        private readonly FileNameManager _fileNameManager;
+        private readonly VaultOptions _vaultOptions;
 
-        public ListGenerator(
-            FileNameManager fileNameManager,
-            IOptionsMonitor<VaultOptions> vaultConfiguration)
+        public ListGenerator(FileNameManager fileNameManager, IOptionsMonitor<VaultOptions> vaultOptionsMonitor)
         {
-            this.fileNameManager = fileNameManager;
-            this.vaultConfiguration = vaultConfiguration.CurrentValue;
+            _fileNameManager = fileNameManager;
+            _vaultOptions = vaultOptionsMonitor.CurrentValue;
         }
 
         /// <summary>
@@ -59,7 +52,7 @@ namespace AK.Vault
         /// <returns></returns>
         public FolderEntry Generate(string vaultName)
         {
-            var encryptedFileLocation = this.vaultConfiguration.Vaults
+            var encryptedFileLocation = _vaultOptions.Vaults
                 .Single(x => x.Name == vaultName).EncryptedFileLocation;
 
             var files = Directory
@@ -67,7 +60,7 @@ namespace AK.Vault
                 .Select(x => new FileNameInfo {Original = string.Empty, Encrypted = x})
                 .ToArray();
 
-            Parallel.ForEach(files, x => x.Original = this.ExtractFileName(x.Encrypted));
+            Parallel.ForEach(files, x => x.Original = ExtractFileName(x.Encrypted));
 
             var fileMap = files.ToDictionary(x => x.Original, x => x.Encrypted);
 
@@ -83,7 +76,7 @@ namespace AK.Vault
                 {
                     folderEntry = new FolderEntry {FullPath = folder, Name = Path.GetFileName(folder)};
                     if (folder != Path.GetPathRoot(folder))
-                        folderEntry.Parent = this.GetOrCreateParent(folderEntry, folderEntryMap);
+                        folderEntry.Parent = GetOrCreateParent(folderEntry, folderEntryMap);
                     folderEntryMap[folder] = folderEntry;
                 }
 
@@ -115,7 +108,7 @@ namespace AK.Vault
                 parentFolderEntry = new FolderEntry {FullPath = parentFolder, Name = Path.GetFileName(parentFolder)};
                 folderEntryMap[parentFolder] = parentFolderEntry;
                 if (parentFolder != Path.GetPathRoot(parentFolder))
-                    parentFolderEntry.Parent = this.GetOrCreateParent(parentFolderEntry, folderEntryMap);
+                    parentFolderEntry.Parent = GetOrCreateParent(parentFolderEntry, folderEntryMap);
             }
 
             folderEntry.Parent = parentFolderEntry;
@@ -127,7 +120,7 @@ namespace AK.Vault
         private string ExtractFileName(string encryptedFile)
         {
             using (var stream = File.OpenRead(encryptedFile))
-                return this.fileNameManager.ReadOriginalFileNameFromStream(stream);
+                return _fileNameManager.ReadOriginalFileNameFromStream(stream);
         }
 
         private class FileNameInfo

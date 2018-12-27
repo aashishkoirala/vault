@@ -1,6 +1,5 @@
 ﻿/*******************************************************************************************************************************
- * AK.Vault.Console.Launcher
- * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2019 Aashish Koirala <https://www.aashishkoirala.com>
  * 
  * This file is part of VAULT.
  *  
@@ -15,11 +14,9 @@
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
- * along with VAULT.  If not, see <http://www.gnu.org/licenses/>.
+ * along with VAULT.  If not, see <https://www.gnu.org/licenses/>.
  * 
  *******************************************************************************************************************************/
-
-#region Namespace Imports
 
 using System;
 using System.Collections.Generic;
@@ -29,8 +26,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-
-#endregion
 
 namespace AK.Vault.Console
 {
@@ -42,67 +37,67 @@ namespace AK.Vault.Console
     {
         private const int ItemsPerPage = 15;
 
-        private readonly FileEncryptor fileEncryptor;
-        private readonly IDictionary<ConsoleKey, ExecutableMenuItem> executableMenu;
+        private readonly FileEncryptor _fileEncryptor;
+        private readonly IDictionary<ConsoleKey, ExecutableMenuItem> _executableMenu;
         private static readonly char[] MenuKeyChars = 
             new[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E' };
 
-        private IDictionary<char, SelectableMenuItem> selectableMenu;
-        private FolderEntry currentFolder;
-        private int itemIndex;
-        private SelectableMenuItem selectedMenuItem;
-        private bool isRunning = true;
+        private IDictionary<char, SelectableMenuItem> _selectableMenu;
+        private FolderEntry _currentFolder;
+        private int _itemIndex;
+        private SelectableMenuItem _selectedMenuItem;
+        private bool _isRunning = true;
 
         public Launcher(FileEncryptor fileEncryptor, ListGenerator listGenerator, string vaultName)
         {
-            this.fileEncryptor = fileEncryptor;
-            this.currentFolder = listGenerator.Generate(vaultName);
-            this.executableMenu = this.BuildExecutableMenu();
+            _fileEncryptor = fileEncryptor;
+            _currentFolder = listGenerator.Generate(vaultName);
+            _executableMenu = BuildExecutableMenu();
         }
 
         public void Run()
         {
-            this.BuildSelectableMenu();
-            if (!this.selectableMenu.Any())
+            BuildSelectableMenu();
+            if (!_selectableMenu.Any())
             {
                 Screen.Print("There is nothing in the vault");
                 return;
             }
 
-            this.PrintMenu();
+            PrintMenu();
 
-            while (this.isRunning)
+            while (_isRunning)
             {
                 var keyInfo = Screen.ReadKey();
 
                 ExecutableMenuItem executableMenuItem;
-                if (this.executableMenu.TryGetValue(keyInfo.Key, out executableMenuItem))
+                if (_executableMenu.TryGetValue(keyInfo.Key, out executableMenuItem))
                 {
                     if (!executableMenuItem.Visible) continue;
 
                     executableMenuItem.Execute();
-                    if (!this.isRunning) break;
+                    if (!_isRunning) break;
 
-                    this.PrintMenu();
+                    PrintMenu();
                     continue;
                 }
 
                 var keyChar = keyInfo.KeyChar.ToString(CultureInfo.InvariantCulture).ToUpper()[0];
                 
                 SelectableMenuItem selectableMenuItem;
-                if (!this.selectableMenu.TryGetValue(keyChar, out selectableMenuItem)) continue;
+                if (!_selectableMenu.TryGetValue(keyChar, out selectableMenuItem)) continue;
 
-                this.selectedMenuItem = selectableMenuItem;
-                this.PrintMenu();
+                _selectedMenuItem = selectableMenuItem;
+                PrintMenu();
             }
         }
 
         private void BuildSelectableMenu()
         {
-            this.selectableMenu =
-                this.currentFolder.Folders
-                    .Concat(this.currentFolder.Files.Cast<object>())
-                    .Skip(this.itemIndex)
+            _selectableMenu =
+                _currentFolder.Folders
+                    .Concat(_currentFolder.Files.Cast<object>())
+                    .Skip(_itemIndex)
                     .Take(ItemsPerPage)
                     .Select(x => x is FileEntry
                                      ? new SelectableMenuItem((FileEntry) x)
@@ -110,7 +105,7 @@ namespace AK.Vault.Console
                     .Select((x, i) => new {Key = MenuKeyChars[i], Value = x})
                     .ToDictionary(x => x.Key, x => x.Value);
 
-            this.selectedMenuItem = this.selectableMenu.First().Value;
+            _selectedMenuItem = _selectableMenu.First().Value;
         }
 
         private IDictionary<ConsoleKey, ExecutableMenuItem> BuildExecutableMenu()
@@ -120,32 +115,32 @@ namespace AK.Vault.Console
                     {
                         ConsoleKey.Enter,
                         new ExecutableMenuItem(
-                            "Open Selected Folder", this.OpenSelected, () => this.selectedMenuItem.IsFolder)
+                            "Open Selected Folder", OpenSelected, () => _selectedMenuItem.IsFolder)
                     },
 
                     {
                         ConsoleKey.F10,
-                        new ExecutableMenuItem("Decrypt Selected Item", this.DecryptSelected, () => true)
+                        new ExecutableMenuItem("Decrypt Selected Item", DecryptSelected, () => true)
                     },
                     {
                         ConsoleKey.Backspace,
                         new ExecutableMenuItem(
-                            "Go Back To Parent", this.NavigateToParent, () => this.currentFolder.Parent != null)
+                            "Go Back To Parent", NavigateToParent, () => _currentFolder.Parent != null)
                     },
                     {
                         ConsoleKey.PageDown,
                         new ExecutableMenuItem(
-                            "Go To Next Page", this.GoToNextPage,
+                            "Go To Next Page", GoToNextPage,
                             () =>
-                            this.itemIndex + ItemsPerPage <
-                            this.currentFolder.Folders.Count + this.currentFolder.Files.Count)
+                            _itemIndex + ItemsPerPage <
+                            _currentFolder.Folders.Count + _currentFolder.Files.Count)
                     },
                     {
                         ConsoleKey.PageUp,
                         new ExecutableMenuItem(
-                            "Go To Previous Page", this.GoToPreviousPage, () => this.itemIndex > 0)
+                            "Go To Previous Page", GoToPreviousPage, () => _itemIndex > 0)
                     },
-                    {ConsoleKey.Escape, new ExecutableMenuItem("Quit", this.Quit, () => true)}
+                    {ConsoleKey.Escape, new ExecutableMenuItem("Quit", Quit, () => true)}
                 };
         }
 
@@ -157,15 +152,15 @@ namespace AK.Vault.Console
             Screen.Print(" {0}", new string('─', 70));
             Screen.Print();
 
-            foreach (var key in this.selectableMenu.Keys)
+            foreach (var key in _selectableMenu.Keys)
             {
-                var item = this.selectableMenu[key];
+                var item = _selectableMenu[key];
 
-                var foreColor = item == this.selectedMenuItem
+                var foreColor = item == _selectedMenuItem
                                     ? Screen.Colors.CurrentBackground
                                     : Screen.Colors.CurrentForeground;
 
-                var backColor = item == this.selectedMenuItem
+                var backColor = item == _selectedMenuItem
                                     ? Screen.Colors.CurrentForeground
                                     : Screen.Colors.CurrentBackground;
 
@@ -178,27 +173,27 @@ namespace AK.Vault.Console
             Screen.Print(" {0}", new string('─', 70));
             Screen.Print();
 
-            foreach (var pair in this.executableMenu.Where(pair => pair.Value.Visible))
+            foreach (var pair in _executableMenu.Where(pair => pair.Value.Visible))
                 Screen.Print("   {0} - {1}", pair.Key.ToString(), pair.Value.Name);
         }
 
         private void OpenSelected()
         {
-            if (!this.selectedMenuItem.IsFolder) return;
+            if (!_selectedMenuItem.IsFolder) return;
 
-            this.currentFolder = this.selectedMenuItem.FolderEntry;
-            this.BuildSelectableMenu();
+            _currentFolder = _selectedMenuItem.FolderEntry;
+            BuildSelectableMenu();
         }
 
         private void DecryptSelected()
         {
-            var path = this.selectedMenuItem.IsFolder ? this.DecryptSelectedFolder() : this.DecryptSelectedFile();
+            var path = _selectedMenuItem.IsFolder ? DecryptSelectedFolder() : DecryptSelectedFile();
             if (string.IsNullOrWhiteSpace(path)) return;
 
             Screen.Print("What would you like to do with:{0}\"{1}\"?", Environment.NewLine, path);
             Screen.Print();
             Screen.Print("1 - Launch It");
-            if (!this.selectedMenuItem.IsFolder) Screen.Print("2 - Open Containing Folder");
+            if (!_selectedMenuItem.IsFolder) Screen.Print("2 - Open Containing Folder");
             Screen.Print("Escape - Do Nothing");
 
             while (true)
@@ -209,7 +204,7 @@ namespace AK.Vault.Console
                     LaunchPath(path);
                     break;
                 }
-                if (keyInfo.KeyChar == '2' && !this.selectedMenuItem.IsFolder)
+                if (keyInfo.KeyChar == '2' && !_selectedMenuItem.IsFolder)
                 {
                     LaunchPath(Path.GetDirectoryName(path));
                     break;
@@ -220,15 +215,15 @@ namespace AK.Vault.Console
 
         private string DecryptSelectedFile()
         {
-            Screen.Print("Decrypting {0}...", this.selectedMenuItem.FileEntry.OriginalFullPath);
+            Screen.Print("Decrypting {0}...", _selectedMenuItem.FileEntry.OriginalFullPath);
             Screen.Print();
 
             Exception exception;
             try
             {
                 var results =
-                    this.fileEncryptor.Decrypt(new[]
-                        {Path.GetFileName(this.selectedMenuItem.FileEntry.EncryptedFullPath)});
+                    _fileEncryptor.Decrypt(new[]
+                        {Path.GetFileName(_selectedMenuItem.FileEntry.EncryptedFullPath)});
                 var result = results.Single();
 
                 if (result.IsDone) return result.UnencryptedFilePath;
@@ -249,15 +244,15 @@ namespace AK.Vault.Console
 
         private string DecryptSelectedFolder()
         {
-            Screen.Print("Decrypting {0}...", this.selectedMenuItem.FolderEntry.FullPath);
+            Screen.Print("Decrypting {0}...", _selectedMenuItem.FolderEntry.FullPath);
             Screen.Print();
 
             var files = new Collection<FileEntry>();
-            TraverseFolder(this.selectedMenuItem.FolderEntry, files);
+            TraverseFolder(_selectedMenuItem.FolderEntry, files);
 
             var filePatternList = files.Select(x => Path.GetFileName(x.EncryptedFullPath));
 
-            var results = this.fileEncryptor.Decrypt(filePatternList).ToArray();
+            var results = _fileEncryptor.Decrypt(filePatternList).ToArray();
 
             var doneCount = results.Count(x => x.IsDone);
 
@@ -284,31 +279,31 @@ namespace AK.Vault.Console
 
         private void NavigateToParent()
         {
-            if (this.currentFolder.Parent == null) return;
-            this.currentFolder = this.currentFolder.Parent;
-            this.BuildSelectableMenu();
+            if (_currentFolder.Parent == null) return;
+            _currentFolder = _currentFolder.Parent;
+            BuildSelectableMenu();
         }
 
         private void GoToNextPage()
         {
-            if (this.itemIndex + ItemsPerPage > this.currentFolder.Folders.Count + this.currentFolder.Files.Count)
+            if (_itemIndex + ItemsPerPage > _currentFolder.Folders.Count + _currentFolder.Files.Count)
                 return;
 
-            this.itemIndex += ItemsPerPage;
-            this.BuildSelectableMenu();
+            _itemIndex += ItemsPerPage;
+            BuildSelectableMenu();
         }
 
         private void GoToPreviousPage()
         {
-            if (this.itemIndex == 0) return;
+            if (_itemIndex == 0) return;
 
-            this.itemIndex -= ItemsPerPage;
-            this.BuildSelectableMenu();
+            _itemIndex -= ItemsPerPage;
+            BuildSelectableMenu();
         }
 
         private void Quit()
         {
-            this.isRunning = false;
+            _isRunning = false;
         }
 
         private static void TraverseFolder(FolderEntry folder, ICollection<FileEntry> files)
@@ -320,42 +315,33 @@ namespace AK.Vault.Console
 
     internal class SelectableMenuItem
     {
-        public SelectableMenuItem(FolderEntry folderEntry)
-        {
-            this.FolderEntry = folderEntry;
-        }
+        public SelectableMenuItem(FolderEntry folderEntry) => FolderEntry = folderEntry;
 
-        public SelectableMenuItem(FileEntry fileEntry)
-        {
-            this.FileEntry = fileEntry;
-        }
+        public SelectableMenuItem(FileEntry fileEntry) => FileEntry = fileEntry;
 
         public FileEntry FileEntry { get; }
 
         public FolderEntry FolderEntry { get; }
 
-        public bool IsFolder => this.FolderEntry != null;
+        public bool IsFolder => FolderEntry != null;
     }
 
     internal class ExecutableMenuItem
     {
-        private readonly Action action;
-        private readonly Func<bool> showIf;
+        private readonly Action _action;
+        private readonly Func<bool> _showIf;
 
         public ExecutableMenuItem(string name, Action action, Func<bool> showIf)
         {
-            this.Name = name;
-            this.action = action;
-            this.showIf = showIf;
+            Name = name;
+            _action = action;
+            _showIf = showIf;
         }
 
         public string Name { get; }
 
-        public bool Visible => this.showIf();
+        public bool Visible => _showIf();
 
-        public void Execute()
-        {
-            this.action();
-        }
+        public void Execute() => _action();
     }
 }

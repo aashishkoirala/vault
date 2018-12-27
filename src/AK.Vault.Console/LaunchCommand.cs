@@ -1,6 +1,5 @@
 ﻿/*******************************************************************************************************************************
- * AK.Vault.Console.LaunchCommand
- * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2019 Aashish Koirala <https://www.aashishkoirala.com>
  * 
  * This file is part of VAULT.
  *  
@@ -15,17 +14,12 @@
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
- * along with VAULT.  If not, see <http://www.gnu.org/licenses/>.
+ * along with VAULT.  If not, see <https://www.gnu.org/licenses/>.
  * 
  *******************************************************************************************************************************/
 
-#region Namespace Imports
-
-using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-
-#endregion
 
 namespace AK.Vault.Console
 {
@@ -36,21 +30,18 @@ namespace AK.Vault.Console
     [CommandInfo(CommandName = "launch", RequiresEncryptionKeyInput = true)]
     internal class LaunchCommand : CommandBase
     {
-        private Launcher launcher;
-        private readonly ListGenerator listGenerator;
+        private Launcher _launcher;
+        private readonly ListGenerator _listGenerator;
 
-        public LaunchCommand(ListGenerator listGenerator, FileEncryptorFactory fileEncryptorFactory) : 
-            base(fileEncryptorFactory)
-        {
-            this.listGenerator = listGenerator;
-        }
+        public LaunchCommand(ListGenerator listGenerator, FileEncryptorFactory fileEncryptorFactory) :
+            base(fileEncryptorFactory) => _listGenerator = listGenerator;
 
         public override bool ProcessParameters() => true;
 
         public override void AssignEncryptionKeyInput(EncryptionKeyInput encryptionKeyInput)
         {
             base.AssignEncryptionKeyInput(encryptionKeyInput);
-            this.launcher = new Launcher(this.FileEncryptor, this.listGenerator, this.VaultName);
+            _launcher = new Launcher(_fileEncryptor, _listGenerator, VaultName);
         }
 
         protected override bool PromptAfterEnd => false;
@@ -63,7 +54,7 @@ namespace AK.Vault.Console
             {
                 Screen.Print();
                 Screen.Print("Launching application...");
-                this.launcher.Run();
+                _launcher.Run();
                 return true;
             }
             catch (Exception ex)

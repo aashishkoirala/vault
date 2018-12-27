@@ -1,6 +1,5 @@
 ﻿/*******************************************************************************************************************************
- * AK.Vault.FolderEntry
- * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2019 Aashish Koirala <https://www.aashishkoirala.com>
  * 
  * This file is part of VAULT.
  *  
@@ -15,16 +14,11 @@
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
- * along with VAULT.  If not, see <http://www.gnu.org/licenses/>.
+ * along with VAULT.  If not, see <https://www.gnu.org/licenses/>.
  * 
  *******************************************************************************************************************************/
 
-#region Namespace Imports
-
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-
-#endregion
 
 namespace AK.Vault
 {
@@ -34,12 +28,6 @@ namespace AK.Vault
     /// <author>Aashish Koirala</author>
     public class FolderEntry
     {
-        public FolderEntry()
-        {
-            this.Folders = new Collection<FolderEntry>();
-            this.Files = new Collection<FileEntry>();
-        }
-
         /// <summary>
         /// Full path of the original folder.
         /// </summary>
@@ -59,11 +47,11 @@ namespace AK.Vault
         /// <summary>
         /// List of FolderEntry objects representing this folder's child folders.
         /// </summary>
-        public ICollection<FolderEntry> Folders { get; private set; }
+        public ICollection<FolderEntry> Folders { get; } = new List<FolderEntry>();
 
         /// <summary>
         /// List of FileEntry objects representing files in this folder.
         /// </summary>
-        public ICollection<FileEntry> Files { get; private set; }
+        public ICollection<FileEntry> Files { get; } = new List<FileEntry>();
     }
 }

@@ -1,6 +1,5 @@
 ﻿/*******************************************************************************************************************************
- * AK.Vault.Console.ReportCommand
- * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2019 Aashish Koirala <https://www.aashishkoirala.com>
  * 
  * This file is part of VAULT.
  *  
@@ -15,19 +14,15 @@
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
- * along with VAULT.  If not, see <http://www.gnu.org/licenses/>.
+ * along with VAULT.  If not, see <https://www.gnu.org/licenses/>.
  * 
  *******************************************************************************************************************************/
 
-#region Namespace Imports
-
-using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
-#endregion
+using Microsoft.Extensions.Options;
 
 namespace AK.Vault.Console
 {
@@ -40,22 +35,22 @@ namespace AK.Vault.Console
     {
         protected override bool PromptBeforeStart => false;
 
-        private readonly VaultOptions vaultConfiguration;
-        private readonly FileNameManager fileNameManager;
+        private readonly VaultOptions _vaultOptions;
+        private readonly FileNameManager _fileNameManager;
 
-        public ReportCommand(IOptionsMonitor<VaultOptions> vaultConfiguration, 
-            FileNameManager fileNameManager,  FileEncryptorFactory fileEncryptorFactory) : base(fileEncryptorFactory)
+        public ReportCommand(IOptionsMonitor<VaultOptions> vaultOptionsMonitor,
+            FileNameManager fileNameManager, FileEncryptorFactory fileEncryptorFactory) : base(fileEncryptorFactory)
         {
-            this.vaultConfiguration = vaultConfiguration.CurrentValue;
-            this.fileNameManager = fileNameManager;
+            _vaultOptions = vaultOptionsMonitor.CurrentValue;
+            _fileNameManager = fileNameManager;
         }
 
         public override bool ProcessParameters() => true;
 
         protected override bool ExecuteCommand(ICollection<Exception> exceptions)
         {
-            var encryptedFileLocation = this.vaultConfiguration.Vaults
-                .Single(x => x.Name == this.VaultName).EncryptedFileLocation;
+            var encryptedFileLocation = _vaultOptions.Vaults
+                .Single(x => x.Name == VaultName).EncryptedFileLocation;
 
             Screen.Print("Encrypted Name\tOriginal Name");
 
@@ -64,7 +59,7 @@ namespace AK.Vault.Console
                 string originalName;
                 using (var stream = File.OpenRead(file))
                 {
-                    originalName = this.fileNameManager.ReadOriginalFileNameFromStream(stream);
+                    originalName = _fileNameManager.ReadOriginalFileNameFromStream(stream);
                 }
 
                 Screen.Print("{0}\t{1}", file, originalName);

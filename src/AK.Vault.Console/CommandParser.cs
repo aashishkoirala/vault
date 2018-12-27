@@ -1,6 +1,5 @@
 ﻿/*******************************************************************************************************************************
- * AK.Vault.Console.CommandParser
- * Copyright © 2014-2016 Aashish Koirala <http://aashishkoirala.github.io>
+ * Copyright © 2014-2019 Aashish Koirala <https://www.aashishkoirala.com>
  * 
  * This file is part of VAULT.
  *  
@@ -15,23 +14,16 @@
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
- * along with VAULT.  If not, see <http://www.gnu.org/licenses/>.
+ * along with VAULT.  If not, see <https://www.gnu.org/licenses/>.
  * 
  *******************************************************************************************************************************/
 
-#region Namespace Imports
-
 using System;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-
-#endregion
 
 namespace AK.Vault.Console
 {
@@ -42,12 +34,9 @@ namespace AK.Vault.Console
     /// <author>Aashish Koirala</author>
     internal class CommandParser
     {
-        private readonly CancellationTokenSource cancellationTokenSource;
+        private readonly CancellationTokenSource _cancellationTokenSource;
 
-        public CommandParser(CancellationTokenSource cancellationTokenSource)
-        {
-            this.cancellationTokenSource = cancellationTokenSource;
-        }
+        public CommandParser(CancellationTokenSource cancellationTokenSource) => _cancellationTokenSource = cancellationTokenSource;
 
         public int ReturnCode { get; private set; }
 
@@ -70,7 +59,7 @@ namespace AK.Vault.Console
                 Screen.Print(Screen.Colors.Error, "Unexpected error:{0}{1}{0}", Environment.NewLine, ex);
                 ReturnCode = 1;
             }
-            this.cancellationTokenSource.Cancel();
+            _cancellationTokenSource.Cancel();
         }
 
         private static ICommand Parse(IConfiguration configuration, IServiceProvider serviceProvider)
