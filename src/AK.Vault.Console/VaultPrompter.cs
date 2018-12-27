@@ -21,7 +21,6 @@
 
 #region Namespace Imports
 
-using AK.Vault.Configuration;
 using System;
 using System.Linq;
 
@@ -42,7 +41,7 @@ namespace AK.Vault.Console
         /// <param name="cancelled">This is set to whether the user cancelled instead of entering.</param>
         /// <param name="configurationProvider">Configuration provider object.</param>
         /// <returns>Encryption key input structure.</returns>
-        public static string Prompt(VaultConfiguration vaultConfiguration)
+        public static string Prompt(VaultOptions vaultConfiguration)
         {
             var vaults = vaultConfiguration.Vaults;
             if (!vaults.Any())

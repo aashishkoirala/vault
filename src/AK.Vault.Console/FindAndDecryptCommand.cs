@@ -44,7 +44,7 @@ namespace AK.Vault.Console
         private readonly FindCommand findCommand;
         private readonly DecryptCommand decryptCommand;
 
-        public FindAndDecryptCommand(IFileEncryptorFactory fileEncryptorFactory,
+        public FindAndDecryptCommand(FileEncryptorFactory fileEncryptorFactory,
             IConfiguration configuration, FindCommand findCommand, DecryptCommand decryptCommand) : 
             base(fileEncryptorFactory)
         {

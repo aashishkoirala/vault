@@ -21,7 +21,6 @@
 
 #region Namespace Imports
 
-using AK.Vault.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using System;
@@ -41,15 +40,15 @@ namespace AK.Vault.Console
     internal class FindCommand : CommandBase
     {
         private string fileToFind;
-        private readonly IFileNameManager fileNameManager;
-        private readonly VaultConfiguration vaultConfiguration;
+        private readonly FileNameManager fileNameManager;
+        private readonly VaultOptions vaultConfiguration;
         private readonly IConfiguration configuration;
 
         public Action<string> FileFound { get; set; }
 
-        public FindCommand(IConfiguration configuration, IFileNameManager fileNameManager, 
-            IOptionsMonitor<VaultConfiguration> vaultConfiguration, 
-            IFileEncryptorFactory fileEncryptorFactory) : base(fileEncryptorFactory)
+        public FindCommand(IConfiguration configuration, FileNameManager fileNameManager, 
+            IOptionsMonitor<VaultOptions> vaultConfiguration, 
+            FileEncryptorFactory fileEncryptorFactory) : base(fileEncryptorFactory)
         {
             this.configuration = configuration;
             this.fileNameManager = fileNameManager;

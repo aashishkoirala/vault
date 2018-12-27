@@ -27,9 +27,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AK.Vault.Configuration;
 using Microsoft.Extensions.Options;
-
 
 #endregion
 
@@ -40,30 +38,25 @@ namespace AK.Vault
     /// as encrypted files in the vault.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    public interface IListGenerator
+    public class ListGenerator
     {
+        private readonly FileNameManager fileNameManager;
+        private readonly VaultOptions vaultConfiguration;
+
+        public ListGenerator(
+            FileNameManager fileNameManager,
+            IOptionsMonitor<VaultOptions> vaultConfiguration)
+        {
+            this.fileNameManager = fileNameManager;
+            this.vaultConfiguration = vaultConfiguration.CurrentValue;
+        }
+
         /// <summary>
         /// Generates the tree and returns the FolderEntry object representing the
         /// root that can be used to traverse down to everything else.
         /// </summary>
         /// <param name="vaultName">Vault name.</param>
         /// <returns></returns>
-        FolderEntry Generate(string vaultName);
-    }
-
-    public class ListGenerator : IListGenerator
-    {
-        private readonly IFileNameManager fileNameManager;
-        private readonly VaultConfiguration vaultConfiguration;
-
-        public ListGenerator(
-            IFileNameManager fileNameManager,
-            IOptionsMonitor<VaultConfiguration> vaultConfiguration)
-        {
-            this.fileNameManager = fileNameManager;
-            this.vaultConfiguration = vaultConfiguration.CurrentValue;
-        }
-
         public FolderEntry Generate(string vaultName)
         {
             var encryptedFileLocation = this.vaultConfiguration.Vaults

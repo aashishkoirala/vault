@@ -37,9 +37,9 @@ namespace AK.Vault.Console
     internal class LaunchCommand : CommandBase
     {
         private Launcher launcher;
-        private readonly IListGenerator listGenerator;
+        private readonly ListGenerator listGenerator;
 
-        public LaunchCommand(IListGenerator listGenerator, IFileEncryptorFactory fileEncryptorFactory) : 
+        public LaunchCommand(ListGenerator listGenerator, FileEncryptorFactory fileEncryptorFactory) : 
             base(fileEncryptorFactory)
         {
             this.listGenerator = listGenerator;

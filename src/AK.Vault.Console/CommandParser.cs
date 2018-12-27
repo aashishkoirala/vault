@@ -26,7 +26,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using AK.Vault.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -93,7 +92,7 @@ namespace AK.Vault.Console
 
                 var commandInfo = command.GetType().GetCustomAttribute<CommandInfoAttribute>();
 
-                var vaultName = VaultPrompter.Prompt(serviceProvider.GetService<IOptionsMonitor<VaultConfiguration>>().CurrentValue);
+                var vaultName = VaultPrompter.Prompt(serviceProvider.GetService<IOptionsMonitor<VaultOptions>>().CurrentValue);
                 if (vaultName == null) return null;
                 command.VaultName = vaultName;
                 Screen.Clear();

@@ -40,7 +40,7 @@ namespace AK.Vault.Console
         private readonly IConfiguration configuration;
         private string[] filePatterns;
 
-        public EncryptCommand(IConfiguration configuration, IFileEncryptorFactory fileEncryptorFactory) :
+        public EncryptCommand(IConfiguration configuration, FileEncryptorFactory fileEncryptorFactory) :
             base(fileEncryptorFactory)
         {
             this.configuration = configuration;

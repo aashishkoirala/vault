@@ -39,8 +39,8 @@ namespace AK.Vault.Console
     /// <author>Aashish Koirala</author>
     internal abstract class CommandBase : ICommand
     {
-        private readonly IFileEncryptorFactory fileEncryptorFactory;
-        protected IFileEncryptor FileEncryptor;
+        private readonly FileEncryptorFactory fileEncryptorFactory;
+        protected FileEncryptor FileEncryptor;
 
         protected virtual bool PromptBeforeStart => true;
 
@@ -50,7 +50,7 @@ namespace AK.Vault.Console
 
         public virtual string VaultName { get; set; }
 
-        protected CommandBase(IFileEncryptorFactory fileEncryptorFactory)
+        protected CommandBase(FileEncryptorFactory fileEncryptorFactory)
         {
             this.fileEncryptorFactory = fileEncryptorFactory;
         }

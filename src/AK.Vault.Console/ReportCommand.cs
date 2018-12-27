@@ -21,7 +21,6 @@
 
 #region Namespace Imports
 
-using AK.Vault.Configuration;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -41,11 +40,11 @@ namespace AK.Vault.Console
     {
         protected override bool PromptBeforeStart => false;
 
-        private readonly VaultConfiguration vaultConfiguration;
-        private readonly IFileNameManager fileNameManager;
+        private readonly VaultOptions vaultConfiguration;
+        private readonly FileNameManager fileNameManager;
 
-        public ReportCommand(IOptionsMonitor<VaultConfiguration> vaultConfiguration, 
-            IFileNameManager fileNameManager,  IFileEncryptorFactory fileEncryptorFactory) : base(fileEncryptorFactory)
+        public ReportCommand(IOptionsMonitor<VaultOptions> vaultConfiguration, 
+            FileNameManager fileNameManager,  FileEncryptorFactory fileEncryptorFactory) : base(fileEncryptorFactory)
         {
             this.vaultConfiguration = vaultConfiguration.CurrentValue;
             this.fileNameManager = fileNameManager;

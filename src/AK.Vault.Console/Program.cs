@@ -1,12 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Configuration;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using System;
-using System.Linq;
-using System.Reflection;
-using AK.Vault.Configuration;
 
 namespace AK.Vault.Console
 {
@@ -31,14 +28,10 @@ namespace AK.Vault.Console
                     .ConfigureAppConfiguration(c => c.AddCommandLine(args).AddJsonFile("appsettings.json"))
                     .ConfigureServices((c, s) => s
                         .Configure<ConsoleLifetimeOptions>(o => o.SuppressStatusMessages = true)
-                        .Configure<VaultConfiguration>(o => c.Configuration.Bind(o))
+                        .Configure<VaultOptions>(o => c.Configuration.Bind(o))
                         .AddSingleton(commandParser)
-                        .AddSingleton<IEncryptionKeyGenerator, EncryptionKeyGenerator>()
-                        .AddSingleton<IFileEncryptorFactory, FileEncryptorFactory>()
-                        .AddSingleton<IFileNameManager, FileNameManager>()
-                        .AddSingleton<IListGenerator, ListGenerator>()
-                        .AddSingleton<ISymmetricEncryptor, SymmetricEncryptor>()
-                        .AddCommands()
+                        .AddVaultServices()
+                        .AddVaultConsoleCommands()
                         .AddHostedService<Program>())
                     .RunConsoleAsync(cancellationTokenSource.Token);
 
@@ -60,22 +53,5 @@ namespace AK.Vault.Console
         }
 
         public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
-    }
-
-    public static class Thingy
-    {
-        public static IServiceCollection AddCommands(this IServiceCollection services)
-        {
-            var assembly = typeof(ICommand).Assembly;
-            var commandTypes = assembly.GetTypes().Where(x => x != typeof(CommandBase) && x.GetInterfaces().Any(y => y == typeof(ICommand))).ToArray();
-            foreach (var type in commandTypes) services = services.AddSingleton(type);
-            var commandNameTypeHash = commandTypes.ToDictionary(x => x.GetCustomAttribute<CommandInfoAttribute>().CommandName);
-            services.AddTransient<Func<string, ICommand>>(sp => n =>
-            {
-                var type = commandNameTypeHash.TryGetValue(n, out var t) ? t : null;
-                return (ICommand)(type == null ? null : sp.GetService(type));
-            });
-            return services;
-        }
     }
 }

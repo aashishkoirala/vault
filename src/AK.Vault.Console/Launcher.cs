@@ -42,7 +42,7 @@ namespace AK.Vault.Console
     {
         private const int ItemsPerPage = 15;
 
-        private readonly IFileEncryptor fileEncryptor;
+        private readonly FileEncryptor fileEncryptor;
         private readonly IDictionary<ConsoleKey, ExecutableMenuItem> executableMenu;
         private static readonly char[] MenuKeyChars = 
             new[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E' };
@@ -53,7 +53,7 @@ namespace AK.Vault.Console
         private SelectableMenuItem selectedMenuItem;
         private bool isRunning = true;
 
-        public Launcher(IFileEncryptor fileEncryptor, IListGenerator listGenerator, string vaultName)
+        public Launcher(FileEncryptor fileEncryptor, ListGenerator listGenerator, string vaultName)
         {
             this.fileEncryptor = fileEncryptor;
             this.currentFolder = listGenerator.Generate(vaultName);

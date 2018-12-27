@@ -37,9 +37,9 @@ namespace AK.Vault.Console
     {
         protected override bool PromptBeforeStart => false;
 
-        private readonly IListGenerator listGenerator;
+        private readonly ListGenerator listGenerator;
 
-        public ListCommand(IListGenerator listGenerator, IFileEncryptorFactory fileEncryptorFactory) :
+        public ListCommand(ListGenerator listGenerator, FileEncryptorFactory fileEncryptorFactory) :
             base(fileEncryptorFactory)
         {
             this.listGenerator = listGenerator;

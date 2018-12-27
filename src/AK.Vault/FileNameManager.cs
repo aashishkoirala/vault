@@ -34,34 +34,13 @@ namespace AK.Vault
     /// Handles generation/transformation of filenames during encryption/decryption.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    public interface IFileNameManager
+    public class FileNameManager
     {
         /// <summary>
         /// Generates a name for the encrypted file based on the original file name.
         /// </summary>
         /// <param name="unencryptedFileName">Original file name.</param>
         /// <returns>Encrypted file name.</returns>
-        string GenerateNameForEncryptedFile(string unencryptedFileName);
-
-        /// <summary>
-        /// Encodes and writes the original file name to the given stream (for use
-        /// during encryption).
-        /// </summary>
-        /// <param name="fileName">Original file name.</param>
-        /// <param name="stream">Stream to write to.</param>
-        void WriteOriginalFileNameToStream(string fileName, Stream stream);
-
-        /// <summary>
-        /// Decodes and reads the original file name from a stream (for use during
-        /// decryption or traversal).
-        /// </summary>
-        /// <param name="stream">Stream to read from.</param>
-        /// <returns>Original file name.</returns>
-        string ReadOriginalFileNameFromStream(Stream stream);
-    }
-
-    public class FileNameManager : IFileNameManager
-    {
         public string GenerateNameForEncryptedFile(string unencryptedFileName)
         {
             byte[] hash;
@@ -73,6 +52,12 @@ namespace AK.Vault
             return $"{BitConverter.ToString(hash).Replace("-", "")}.vault";
         }
 
+        /// <summary>
+        /// Encodes and writes the original file name to the given stream (for use
+        /// during encryption).
+        /// </summary>
+        /// <param name="fileName">Original file name.</param>
+        /// <param name="stream">Stream to write to.</param>
         public void WriteOriginalFileNameToStream(string fileName, Stream stream)
         {
             var data = Encoding.UTF8.GetBytes(fileName);
@@ -84,6 +69,12 @@ namespace AK.Vault
             stream.Write(data, 0, data.Length);
         }
 
+        /// <summary>
+        /// Decodes and reads the original file name from a stream (for use during
+        /// decryption or traversal).
+        /// </summary>
+        /// <param name="stream">Stream to read from.</param>
+        /// <returns>Original file name.</returns>
         public string ReadOriginalFileNameFromStream(Stream stream)
         {
             var lengthData = new byte[4];

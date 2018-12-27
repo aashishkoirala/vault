@@ -32,18 +32,13 @@ namespace AK.Vault
     /// Generates symmetric encryption key based on the given input structure.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    public interface IEncryptionKeyGenerator
+    public class EncryptionKeyGenerator
     {
         /// <summary>
         /// Generates a symmetric encryption key.
         /// </summary>
         /// <param name="input">Input structure that acts as source of info or seed for the key.</param>
         /// <returns>Encryption key as byte array.</returns>
-        byte[] Generate(EncryptionKeyInput input);
-    }
-
-    public class EncryptionKeyGenerator : IEncryptionKeyGenerator
-    {
         public byte[] Generate(EncryptionKeyInput input)
         {
             var seed = $"{input.FullName}|{input.DateOfBirth}|{input.SocialSecurityNumber}|{input.PassPhrase}";

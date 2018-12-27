@@ -19,14 +19,10 @@
  * 
  *******************************************************************************************************************************/
 
-#region Namespace Imports
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
-
-#endregion
 
 namespace AK.Vault
 {
@@ -34,42 +30,7 @@ namespace AK.Vault
     /// Performs symmetric encryption/decryption.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    public interface ISymmetricEncryptor
-    {
-        /// <summary>
-        /// Reads data from one stream, encrypts it, and writes the encrypted data to another stream.
-        /// </summary>
-        /// <param name="parameters">Encryption parameters.</param>
-        /// <param name="inStream">Stream to read plain data from.</param>
-        /// <param name="outStream">Stream to write encrypted data to.</param>
-        void Encrypt(SymmetricEncryptionParameters parameters, Stream inStream, Stream outStream);
-
-        /// <summary>
-        /// Reads data from one stream, decrypts it, and writes the decrypted data to another stream.
-        /// </summary>
-        /// <param name="parameters">Decryption parameters.</param>
-        /// <param name="inStream">Stream to read encrypted data from.</param>
-        /// <param name="outStream">Stream to write decrypted data to.</param>
-        void Decrypt(SymmetricEncryptionParameters parameters, Stream inStream, Stream outStream);
-
-        /// <summary>
-        /// Encrypts the given data.
-        /// </summary>
-        /// <param name="parameters">Encryption parameters.</param>
-        /// <param name="inData">Plain data to encrypt.</param>
-        /// <returns>Encrypted data.</returns>
-        byte[] Encrypt(SymmetricEncryptionParameters parameters, byte[] inData);
-
-        /// <summary>
-        /// Decrypts the given data.
-        /// </summary>
-        /// <param name="parameters">Decryption parameters.</param>
-        /// <param name="inData">Encrypted data to decrypt.</param>
-        /// <returns>Decrypted data.</returns>
-        byte[] Decrypt(SymmetricEncryptionParameters parameters, byte[] inData);
-    }
-
-    public class SymmetricEncryptor : ISymmetricEncryptor
+    public class SymmetricEncryptor
     {
         private static readonly IDictionary<AlgorithmType, Func<SymmetricAlgorithm>>
             AlgorithmMap = new Dictionary<AlgorithmType, Func<SymmetricAlgorithm>>
@@ -81,6 +42,12 @@ namespace AK.Vault
                     {AlgorithmType.TripleDes, TripleDES.Create}
                 };
 
+        /// <summary>
+        /// Reads data from one stream, encrypts it, and writes the encrypted data to another stream.
+        /// </summary>
+        /// <param name="parameters">Encryption parameters.</param>
+        /// <param name="inStream">Stream to read plain data from.</param>
+        /// <param name="outStream">Stream to write encrypted data to.</param>
         public void Encrypt(SymmetricEncryptionParameters parameters, Stream inStream, Stream outStream)
         {
             using (var algorithm = AlgorithmMap[parameters.Algorithm]())
@@ -93,6 +60,12 @@ namespace AK.Vault
             }
         }
 
+        /// <summary>
+        /// Reads data from one stream, decrypts it, and writes the decrypted data to another stream.
+        /// </summary>
+        /// <param name="parameters">Decryption parameters.</param>
+        /// <param name="inStream">Stream to read encrypted data from.</param>
+        /// <param name="outStream">Stream to write decrypted data to.</param>
         public void Decrypt(SymmetricEncryptionParameters parameters, Stream inStream, Stream outStream)
         {
             using (var algorithm = AlgorithmMap[parameters.Algorithm]())
@@ -105,6 +78,12 @@ namespace AK.Vault
             }
         }
 
+        /// <summary>
+        /// Encrypts the given data.
+        /// </summary>
+        /// <param name="parameters">Encryption parameters.</param>
+        /// <param name="inData">Plain data to encrypt.</param>
+        /// <returns>Encrypted data.</returns>
         public byte[] Encrypt(SymmetricEncryptionParameters parameters, byte[] inData)
         {
             using (MemoryStream inDataStream = new MemoryStream(inData), outDataStream = new MemoryStream())
@@ -115,6 +94,12 @@ namespace AK.Vault
             }
         }
 
+        /// <summary>
+        /// Decrypts the given data.
+        /// </summary>
+        /// <param name="parameters">Decryption parameters.</param>
+        /// <param name="inData">Encrypted data to decrypt.</param>
+        /// <returns>Decrypted data.</returns>
         public byte[] Decrypt(SymmetricEncryptionParameters parameters, byte[] inData)
         {
             using (MemoryStream inDataStream = new MemoryStream(inData), outDataStream = new MemoryStream())

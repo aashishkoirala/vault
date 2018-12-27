@@ -21,7 +21,6 @@
 
 #region Namespace Imports
 
-using AK.Vault.Configuration;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -39,54 +38,20 @@ namespace AK.Vault
     /// Encrypts and decrypts sets of files.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    public interface IFileEncryptor
+    public class FileEncryptor
     {
-        /// <summary>
-        /// Encrypts the given set of files.
-        /// </summary>
-        /// <param name="filePatterns">
-        /// List of file patterns. 
-        /// A file pattern can be a single file, a folder, or a folder path with a wildcard.</param>
-        /// <returns>
-        /// List of FileEncryptionResult instances representing the encryption result for each
-        /// file in the set.
-        /// </returns>
-        IEnumerable<FileEncryptionResult> Encrypt(IEnumerable<string> filePatterns);
-
-        /// <summary>
-        /// Decrypts the given set of files.
-        /// </summary>
-        /// <param name="filePatterns">
-        /// List of file patterns. For decryption, the file pattern is assumed
-        /// relative to the default encrypted file location.
-        /// </param>
-        /// <returns>
-        /// List of FileEncryptionResult instances representing the decryption result for each
-        /// file in the set.
-        /// </returns>
-        IEnumerable<FileEncryptionResult> Decrypt(IEnumerable<string> filePatterns);
-
-        /// <summary>
-        /// Action to take with an update message when one is sent
-        /// (for use primarily to report progress).
-        /// </summary>
-        Action<Message> UpdateMessageAction { get; set; }
-    }
-
-    internal class FileEncryptor : IFileEncryptor
-    {
-        private readonly ISymmetricEncryptor symmetricEncryptor;
-        private readonly VaultConfiguration vaultConfiguration;
-        private readonly IFileNameManager fileNameManager;
+        private readonly SymmetricEncryptor symmetricEncryptor;
+        private readonly VaultOptions vaultConfiguration;
+        private readonly FileNameManager fileNameManager;
         private readonly SymmetricEncryptionParameters parameters;
         private readonly BlockingCollection<Message> messages = new BlockingCollection<Message>();
         private readonly string vaultName;
 
         internal FileEncryptor(
-            ISymmetricEncryptor symmetricEncryptor,
-            IEncryptionKeyGenerator encryptionKeyGenerator,
-            VaultConfiguration vaultConfiguration,
-            IFileNameManager fileNameManager,
+            SymmetricEncryptor symmetricEncryptor,
+            EncryptionKeyGenerator encryptionKeyGenerator,
+            VaultOptions vaultConfiguration,
+            FileNameManager fileNameManager,
             EncryptionKeyInput encryptionKeyInput,
             string vaultName)
         {
@@ -106,8 +71,22 @@ namespace AK.Vault
             this.vaultName = vaultName;
         }
 
+        /// <summary>
+        /// Action to take with an update message when one is sent
+        /// (for use primarily to report progress).
+        /// </summary>
         public Action<Message> UpdateMessageAction { get; set; }
 
+        /// <summary>
+        /// Encrypts the given set of files.
+        /// </summary>
+        /// <param name="filePatterns">
+        /// List of file patterns. 
+        /// A file pattern can be a single file, a folder, or a folder path with a wildcard.</param>
+        /// <returns>
+        /// List of FileEncryptionResult instances representing the encryption result for each
+        /// file in the set.
+        /// </returns>
         public IEnumerable<FileEncryptionResult> Encrypt(IEnumerable<string> filePatterns)
         {
             var results = filePatterns
@@ -119,6 +98,17 @@ namespace AK.Vault
             return results;
         }
 
+        /// <summary>
+        /// Decrypts the given set of files.
+        /// </summary>
+        /// <param name="filePatterns">
+        /// List of file patterns. For decryption, the file pattern is assumed
+        /// relative to the default encrypted file location.
+        /// </param>
+        /// <returns>
+        /// List of FileEncryptionResult instances representing the decryption result for each
+        /// file in the set.
+        /// </returns>
         public IEnumerable<FileEncryptionResult> Decrypt(IEnumerable<string> filePatterns)
         {
             var results = filePatterns

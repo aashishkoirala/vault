@@ -21,12 +21,12 @@
 
 using System.Collections.Generic;
 
-namespace AK.Vault.Configuration
+namespace AK.Vault
 {
     /// <summary>
     /// Contains information on Vault configuration.
     /// </summary>
-    public class VaultConfiguration
+    public class VaultOptions
     {
         /// <summary>
         /// List of configured vaults.

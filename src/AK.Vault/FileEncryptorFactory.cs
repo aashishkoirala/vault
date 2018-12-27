@@ -19,34 +19,24 @@
  * 
  *******************************************************************************************************************************/
 
-#region Namespace Imports
-
-using AK.Vault.Configuration;
 using Microsoft.Extensions.Options;
-
-#endregion
 
 namespace AK.Vault
 {
-    public interface IFileEncryptorFactory
-    {
-        IFileEncryptor Create(EncryptionKeyInput encryptionKeyInput, string vaultName);
-    }
-
     /// <summary>
     /// Creates FileEncryptor instances.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    public class FileEncryptorFactory : IFileEncryptorFactory
+    public class FileEncryptorFactory
     {
-        private readonly IEncryptionKeyGenerator encryptionKeyGenerator;
-        private readonly VaultConfiguration vaultConfiguration;
-        private readonly IFileNameManager fileNameManager;
-        private readonly ISymmetricEncryptor symmetricEncryptor;
+        private readonly EncryptionKeyGenerator encryptionKeyGenerator;
+        private readonly VaultOptions vaultConfiguration;
+        private readonly FileNameManager fileNameManager;
+        private readonly SymmetricEncryptor symmetricEncryptor;
 
-        public FileEncryptorFactory(IEncryptionKeyGenerator encryptionKeyGenerator, 
-            IOptionsMonitor<VaultConfiguration> vaultConfiguration,
-            IFileNameManager fileNameManager, ISymmetricEncryptor symmetricEncryptor)
+        public FileEncryptorFactory(EncryptionKeyGenerator encryptionKeyGenerator,
+            IOptionsMonitor<VaultOptions> vaultConfiguration,
+            FileNameManager fileNameManager, SymmetricEncryptor symmetricEncryptor)
         {
             this.encryptionKeyGenerator = encryptionKeyGenerator;
             this.vaultConfiguration = vaultConfiguration.CurrentValue;
@@ -55,12 +45,12 @@ namespace AK.Vault
         }
 
         /// <summary>
-        /// Creates an IFileEncryptor based on the given encryption key input structure.
+        /// Creates a FileEncryptor based on the given encryption key input structure.
         /// </summary>
         /// <param name="encryptionKeyInput">Encryption key input structure.</param>
         /// <param name="vaultName">Vault name.</param>
-        /// <returns>IFileEncryptor instance.</returns>
-        public IFileEncryptor Create(EncryptionKeyInput encryptionKeyInput, string vaultName) =>
+        /// <returns>FileEncryptor instance.</returns>
+        public FileEncryptor Create(EncryptionKeyInput encryptionKeyInput, string vaultName) =>
             new FileEncryptor(this.symmetricEncryptor, this.encryptionKeyGenerator,
                 this.vaultConfiguration, this.fileNameManager, encryptionKeyInput, vaultName);
     }
