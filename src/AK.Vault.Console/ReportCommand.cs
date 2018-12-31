@@ -39,13 +39,11 @@ namespace AK.Vault.Console
         private readonly FileNameManager _fileNameManager;
 
         public ReportCommand(IOptionsMonitor<VaultOptions> vaultOptionsMonitor,
-            FileNameManager fileNameManager, FileEncryptorFactory fileEncryptorFactory) : base(fileEncryptorFactory)
+            FileNameManager fileNameManager, FileEncryptorFactory fileEncryptorFactory) : base(fileEncryptorFactory, true)
         {
             _vaultOptions = vaultOptionsMonitor.CurrentValue;
             _fileNameManager = fileNameManager;
         }
-
-        public override bool ProcessParameters() => true;
 
         protected override bool ExecuteCommand(ICollection<Exception> exceptions)
         {

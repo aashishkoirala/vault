@@ -18,11 +18,11 @@
  * 
  *******************************************************************************************************************************/
 
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Extensions.Configuration;
 
 namespace AK.Vault.Console
 {
@@ -34,25 +34,22 @@ namespace AK.Vault.Console
     [CommandInfo(CommandName = "fd", RequiresEncryptionKeyInput = true)]
     internal class FindAndDecryptCommand : CommandBase
     {
-        private string[] _filesToFindAndDecrypt;
-        private EncryptionKeyInput _localEncryptionKeyInput;
-        private readonly IConfiguration _configuration;
+        private readonly string[] _filesToFindAndDecrypt;
         private readonly FindCommand _findCommand;
         private readonly DecryptCommand _decryptCommand;
+        private EncryptionKeyInput _localEncryptionKeyInput;
 
         public FindAndDecryptCommand(FileEncryptorFactory fileEncryptorFactory,
-            IConfiguration configuration, FindCommand findCommand, DecryptCommand decryptCommand) : 
+            IOptionsMonitor<VaultOptions> vaultOptionsMonitor, 
+            FindCommand findCommand, DecryptCommand decryptCommand) : 
             base(fileEncryptorFactory)
         {
-            _configuration = configuration;
             _findCommand = findCommand;
             _decryptCommand = decryptCommand;
-        }
-
-        public override bool ProcessParameters()
-        {
-            _filesToFindAndDecrypt = _configuration["target"].Split(';');
-            return true;
+            var options = vaultOptionsMonitor.CurrentValue;
+            if (string.IsNullOrWhiteSpace(options.Target)) return;
+            _filesToFindAndDecrypt = options.Target.Split(';');
+            IsValid = true;
         }
 
         public override void AssignEncryptionKeyInput(EncryptionKeyInput encryptionKeyInput)

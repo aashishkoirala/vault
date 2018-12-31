@@ -26,23 +26,21 @@ namespace AK.Vault.Console
     /// Promps the user for components of the encryption key input in a protected manner.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    internal static class EncryptionKeyInputPrompter
+    internal class EncryptionKeyInputPrompter
     {
         /// <summary>
         /// Prompts the user for all components and creates an encryption key input structure for use
         /// by the application.
         /// </summary>
         /// <returns>Encryption key input structure (or NULL if cancelled).</returns>
-        public static EncryptionKeyInput Prompt()
+        public EncryptionKeyInput Prompt()
         {
             Screen.Print("Please provide the information you want to use to encrypt or decrypt.");
             Screen.Print("Information that you type will be masked and not visible.");
             Screen.Print("Press ESC to Cancel.");
             Screen.Print();
 
-            bool cancelled;
-
-            var fullName = ProtectedPrompt("Full Name", out cancelled);
+            var fullName = ProtectedPrompt("Full Name", out bool cancelled);
             if (cancelled) return null;
 
             var dateOfBirth = ProtectedDatePrompt("Date of Birth", out cancelled);
@@ -76,8 +74,7 @@ namespace AK.Vault.Console
                     Screen.Print(Screen.Colors.Error, "You can't enter empty/whitespace.");
                     continue;
                 }
-                DateTime resultDate;
-                if (DateTime.TryParse(result, out resultDate)) return resultDate;
+                if (DateTime.TryParse(result, out DateTime resultDate)) return resultDate;
 
                 Screen.Print(Screen.Colors.Error, "That is not a valid date.");
             }

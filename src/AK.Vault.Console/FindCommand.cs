@@ -34,7 +34,7 @@ namespace AK.Vault.Console
     [CommandInfo(CommandName = "find", RequiresEncryptionKeyInput = false)]
     internal class FindCommand : CommandBase
     {
-        private string _fileToFind;
+        private readonly string _fileToFind;
         private readonly FileNameManager _fileNameManager;
         private readonly VaultOptions _vaultOptions;
         private readonly IConfiguration _configuration;
@@ -48,12 +48,8 @@ namespace AK.Vault.Console
             _configuration = configuration;
             _fileNameManager = fileNameManager;
             _vaultOptions = vaultOptionsMonitor.CurrentValue;
-        }
-
-        public override bool ProcessParameters()
-        {
-            _fileToFind = _configuration["target"];
-            return !string.IsNullOrWhiteSpace(_fileToFind);
+            _fileToFind = _vaultOptions.Target;
+            IsValid = !string.IsNullOrWhiteSpace(_fileToFind);
         }
 
         protected override bool PromptAfterEnd => false;

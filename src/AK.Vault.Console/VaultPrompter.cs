@@ -18,6 +18,7 @@
  * 
  *******************************************************************************************************************************/
 
+using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
 
@@ -27,18 +28,26 @@ namespace AK.Vault.Console
     /// Promps the user for which vault to work with.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    internal static class VaultPrompter
+    internal class VaultPrompter
     {
-        /// <summary>
-        /// Prompts the user for all components and creates an encryption key input structure for use
-        /// by the application.
-        /// </summary>
-        /// <param name="cancelled">This is set to whether the user cancelled instead of entering.</param>
-        /// <param name="configurationProvider">Configuration provider object.</param>
-        /// <returns>Encryption key input structure.</returns>
-        public static string Prompt(VaultOptions vaultOptions)
+        private readonly VaultOptions _vaultOptions;
+
+        public VaultPrompter(IOptionsMonitor<VaultOptions> vaultOptionsMonitor) => _vaultOptions = vaultOptionsMonitor.CurrentValue;
+
+        public string Prompt()
         {
-            var vaults = vaultOptions.Vaults;
+            var vaults = _vaultOptions.Vaults;
+            var vault = _vaultOptions.Vault;
+            if (!string.IsNullOrWhiteSpace(vault))
+            {
+                if (vaults.Any(x => x.Name == vault)) return vault;
+                else
+                {
+                    Screen.Print($"Invalid vault- {vault}.");
+                    return null;
+                }
+            }
+
             if (!vaults.Any())
             {
                 Screen.Print("Oops - no vaults configured!");

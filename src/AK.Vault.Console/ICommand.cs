@@ -42,7 +42,7 @@ namespace AK.Vault.Console
         /// to interpret them and set own state.
         /// </summary>
         /// <returns>Whether parameters were successfully parsed and assigned.</returns>
-        bool ProcessParameters();
+        bool IsValid { get; }
 
         /// <summary>
         /// Executes the command.

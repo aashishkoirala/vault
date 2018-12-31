@@ -35,9 +35,7 @@ namespace AK.Vault.Console
         private readonly ListGenerator _listGenerator;
 
         public ListCommand(ListGenerator listGenerator, FileEncryptorFactory fileEncryptorFactory) :
-            base(fileEncryptorFactory) => _listGenerator = listGenerator;
-
-        public override bool ProcessParameters() => true;
+            base(fileEncryptorFactory, true) => _listGenerator = listGenerator;
 
         protected override bool ExecuteCommand(ICollection<Exception> exceptions)
         {

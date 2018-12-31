@@ -34,9 +34,7 @@ namespace AK.Vault.Console
         private readonly ListGenerator _listGenerator;
 
         public LaunchCommand(ListGenerator listGenerator, FileEncryptorFactory fileEncryptorFactory) :
-            base(fileEncryptorFactory) => _listGenerator = listGenerator;
-
-        public override bool ProcessParameters() => true;
+            base(fileEncryptorFactory, true) => _listGenerator = listGenerator;
 
         public override void AssignEncryptionKeyInput(EncryptionKeyInput encryptionKeyInput)
         {

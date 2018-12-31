@@ -41,11 +41,15 @@ namespace AK.Vault.Console
 
         protected virtual bool PromptAfterEnd => true;
 
-        public abstract bool ProcessParameters();
+        public bool IsValid { get; protected set; }
 
         public virtual string VaultName { get; set; }
 
-        protected CommandBase(FileEncryptorFactory fileEncryptorFactory) => _fileEncryptorFactory = fileEncryptorFactory;
+        protected CommandBase(FileEncryptorFactory fileEncryptorFactory, bool isValid = false)
+        {
+            _fileEncryptorFactory = fileEncryptorFactory;
+            IsValid = isValid;
+        }
 
         public virtual void AssignEncryptionKeyInput(EncryptionKeyInput encryptionKeyInput)
         {

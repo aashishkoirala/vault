@@ -18,20 +18,17 @@
  * 
  *******************************************************************************************************************************/
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AK.Vault.Console
 {
     internal class Program : IHostedService
     {
-        private readonly CommandParser _commandParser;
-        private readonly IConfiguration _configuration;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly CommandExecutor _commandExecutor;
 
         /// <summary>
         /// Entry point method.
@@ -42,34 +39,32 @@ namespace AK.Vault.Console
         {
             using (var cancellationTokenSource = new CancellationTokenSource())
             {
-                var commandParser = new CommandParser(cancellationTokenSource);
+                var applicationState = new ApplicationState(cancellationTokenSource);
 
                 await new HostBuilder()
                     .ConfigureAppConfiguration(c => c.AddCommandLine(args).AddJsonFile("appsettings.json"))
                     .ConfigureServices((c, s) => s
                         .Configure<ConsoleLifetimeOptions>(o => o.SuppressStatusMessages = true)
                         .Configure<VaultOptions>(o => c.Configuration.Bind(o))
-                        .AddSingleton(commandParser)
+                        .AddSingleton(applicationState)
+                        .AddSingleton<VaultPrompter>()
+                        .AddSingleton<CommandExecutor>()
+                        .AddSingleton<EncryptionKeyInputPrompter>()
                         .AddVaultServices()
                         .AddVaultConsoleCommands()
                         .AddHostedService<Program>())
                     .RunConsoleAsync(cancellationTokenSource.Token);
 
-                return commandParser.ReturnCode;
+                return applicationState.ReturnCode;
             }
         }
 
-        public Program(IConfiguration configuration, IServiceProvider serviceProvider, CommandParser commandParser)
-        {
-            _configuration = configuration;
-            _serviceProvider = serviceProvider;
-            _commandParser = commandParser;
-        }
+        public Program(CommandExecutor commandExecutor) => _commandExecutor = commandExecutor;
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             await Task.CompletedTask;
-            _commandParser.ParseAndExecute(_configuration, _serviceProvider);
+            _commandExecutor.Execute();
         }
 
         public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

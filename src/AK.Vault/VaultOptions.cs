@@ -30,9 +30,15 @@ namespace AK.Vault
         /// <summary>
         /// List of configured vaults.
         /// </summary>
-        public ICollection<Vault> Vaults { get; } = new List<Vault>();
+        public ICollection<VaultInfo> Vaults { get; } = new List<VaultInfo>();
 
-        public class Vault
+        public string Command { get; set; }
+
+        public string Target { get; set; }
+
+        public string Vault { get; set; }
+
+        public class VaultInfo
         {
             /// <summary>
             /// Name of the vault.

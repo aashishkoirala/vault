@@ -18,10 +18,10 @@
  * 
  *******************************************************************************************************************************/
 
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Extensions.Configuration;
 
 namespace AK.Vault.Console
 {
@@ -32,16 +32,15 @@ namespace AK.Vault.Console
     [CommandInfo(CommandName = "encrypt", RequiresEncryptionKeyInput = true)]
     internal class EncryptCommand : CommandBase
     {
-        private readonly IConfiguration _configuration;
-        private string[] _filePatterns;
+        private readonly string[] _filePatterns;
 
-        public EncryptCommand(IConfiguration configuration, FileEncryptorFactory fileEncryptorFactory) :
-            base(fileEncryptorFactory) => _configuration = configuration;
-
-        public override bool ProcessParameters()
+        public EncryptCommand(FileEncryptorFactory fileEncryptorFactory,
+            IOptionsMonitor<VaultOptions> vaultOptionsMonitor) : base(fileEncryptorFactory)
         {
-            _filePatterns = _configuration["target"].Split(';');
-            return true;
+            var options = vaultOptionsMonitor.CurrentValue;
+            if (string.IsNullOrWhiteSpace(options.Target)) return;
+            _filePatterns = options.Target.Split(';');
+            IsValid = true;
         }
 
         protected override void WriteHeader()
