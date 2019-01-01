@@ -60,11 +60,11 @@ namespace AK.Vault
                 .Select(x => new FileNameInfo {Original = string.Empty, Encrypted = x})
                 .ToArray();
 
-            var taskHash = files.ToDictionary(x => x.Original, x => ExtractFileName(x.Encrypted));
+            var taskHash = files.ToDictionary(x => x.Encrypted, x => ExtractFileName(x.Encrypted));
 
             foreach(var file in files)
             {
-                file.Encrypted = await taskHash[file.Original];
+                file.Original = await taskHash[file.Encrypted];
             }
 
             var fileMap = files.ToDictionary(x => x.Original, x => x.Encrypted);

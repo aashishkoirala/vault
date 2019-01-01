@@ -59,10 +59,13 @@ namespace AK.Vault.Console
             var tasks = new Dictionary<string, Task<string>>();
             foreach (var file in Directory.GetFiles(encryptedFileLocation, "*.vault"))
             {
-                using (var stream = File.OpenRead(file))
+                tasks[file] = Task.Run(async () =>
                 {
-                    tasks[file] = _fileNameManager.ReadOriginalFileNameFromStream(stream);
-                }
+                    using (var stream = File.OpenRead(file))
+                    {
+                        return await _fileNameManager.ReadOriginalFileNameFromStream(stream);
+                    }
+                });
             }
 
             foreach (var item in tasks)
