@@ -18,9 +18,12 @@
  * 
  *******************************************************************************************************************************/
 
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using System;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AK.Vault.Console
 {
@@ -29,7 +32,7 @@ namespace AK.Vault.Console
     /// and execute it.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    internal class CommandExecutor
+    internal class CommandExecutor : IHostedService
     {
         private readonly ApplicationState _applicationState;
         private readonly VaultSelector _vaultSelector;
@@ -52,8 +55,10 @@ namespace AK.Vault.Console
             _console = console;
         }
 
-        public void Execute()
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
+            await Task.CompletedTask;
+
             try
             {
                 _console.Heading("VAULT by Aashish Koirala (c) 2014-2019");
@@ -73,6 +78,8 @@ namespace AK.Vault.Console
             }
             _applicationState.CancellationTokenSource.Cancel();
         }
+
+        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
         private ICommand ParseCommand()
         {

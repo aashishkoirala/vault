@@ -26,10 +26,8 @@ using System.Threading.Tasks;
 
 namespace AK.Vault.Console
 {
-    internal class Program : IHostedService
+    internal static class Program
     {
-        private readonly CommandExecutor _commandExecutor;
-
         /// <summary>
         /// Entry point method.
         /// </summary>
@@ -47,22 +45,11 @@ namespace AK.Vault.Console
                         .Configure<ConsoleLifetimeOptions>(o => o.SuppressStatusMessages = true)
                         .Configure<VaultOptions>(o => c.Configuration.Bind(o))
                         .AddVaultServices()
-                        .AddVaultConsoleServices(applicationState)
-                        .AddHostedService<Program>())
+                        .AddVaultConsoleServices(applicationState))
                     .RunConsoleAsync(cancellationTokenSource.Token);
 
                 return applicationState.ReturnCode;
             }
         }
-
-        public Program(CommandExecutor commandExecutor) => _commandExecutor = commandExecutor;
-
-        public async Task StartAsync(CancellationToken cancellationToken)
-        {
-            await Task.CompletedTask;
-            _commandExecutor.Execute();
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
     }
 }

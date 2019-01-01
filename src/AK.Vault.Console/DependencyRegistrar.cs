@@ -33,6 +33,7 @@ namespace AK.Vault.Console
                 .AddSingleton<CommandExecutor>()
                 .AddSingleton<EncryptionKeyEvaluator>()
                 .AddSingleton(applicationState)
+                .AddHostedService<CommandExecutor>()
                 .AddCommands();
 
         private static IServiceCollection AddCommands(this IServiceCollection services)
