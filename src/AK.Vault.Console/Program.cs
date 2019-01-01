@@ -46,12 +46,8 @@ namespace AK.Vault.Console
                     .ConfigureServices((c, s) => s
                         .Configure<ConsoleLifetimeOptions>(o => o.SuppressStatusMessages = true)
                         .Configure<VaultOptions>(o => c.Configuration.Bind(o))
-                        .AddSingleton(applicationState)
-                        .AddSingleton<VaultPrompter>()
-                        .AddSingleton<CommandExecutor>()
-                        .AddSingleton<EncryptionKeyInputPrompter>()
                         .AddVaultServices()
-                        .AddVaultConsoleCommands()
+                        .AddVaultConsoleServices(applicationState)
                         .AddHostedService<Program>())
                     .RunConsoleAsync(cancellationTokenSource.Token);
 

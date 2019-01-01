@@ -71,10 +71,9 @@ namespace AK.Vault
                 var folder = Path.GetDirectoryName(file);
                 if (folder == null) throw new Exception($"Unexpected error - cannot get directory name from file {file}.");
 
-                FolderEntry folderEntry;
-                if (!folderEntryMap.TryGetValue(folder, out folderEntry))
+                if (!folderEntryMap.TryGetValue(folder, out FolderEntry folderEntry))
                 {
-                    folderEntry = new FolderEntry {FullPath = folder, Name = Path.GetFileName(folder)};
+                    folderEntry = new FolderEntry { FullPath = folder, Name = Path.GetFileName(folder) };
                     if (folder != Path.GetPathRoot(folder))
                         folderEntry.Parent = GetOrCreateParent(folderEntry, folderEntryMap);
                     folderEntryMap[folder] = folderEntry;
@@ -102,10 +101,9 @@ namespace AK.Vault
             var parentFolder = Path.GetDirectoryName(folderEntry.FullPath);
             Debug.Assert(parentFolder != null);
 
-            FolderEntry parentFolderEntry;
-            if (!folderEntryMap.TryGetValue(parentFolder, out parentFolderEntry))
+            if (!folderEntryMap.TryGetValue(parentFolder, out FolderEntry parentFolderEntry))
             {
-                parentFolderEntry = new FolderEntry {FullPath = parentFolder, Name = Path.GetFileName(parentFolder)};
+                parentFolderEntry = new FolderEntry { FullPath = parentFolder, Name = Path.GetFileName(parentFolder) };
                 folderEntryMap[parentFolder] = parentFolderEntry;
                 if (parentFolder != Path.GetPathRoot(parentFolder))
                     parentFolderEntry.Parent = GetOrCreateParent(parentFolderEntry, folderEntryMap);

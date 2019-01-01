@@ -41,8 +41,8 @@ namespace AK.Vault.Console
 
         public FindAndDecryptCommand(FileEncryptorFactory fileEncryptorFactory,
             IOptionsMonitor<VaultOptions> vaultOptionsMonitor, 
-            FindCommand findCommand, DecryptCommand decryptCommand) : 
-            base(fileEncryptorFactory)
+            FindCommand findCommand, DecryptCommand decryptCommand,
+            ConsoleWriter console) : base(fileEncryptorFactory, console)
         {
             _findCommand = findCommand;
             _decryptCommand = decryptCommand;
@@ -60,11 +60,10 @@ namespace AK.Vault.Console
 
         protected override void WriteHeader()
         {
-            Screen.Print();
-            Screen.Print("Starting find-and-decryption of the following:");
-            foreach (var filePattern in _filesToFindAndDecrypt)
-                Screen.Print("{0}{1}", '\t', filePattern);
-            Screen.Print();
+            _console.Blank();
+            _console.Info("Starting find-and-decryption of the following:");
+            foreach (var filePattern in _filesToFindAndDecrypt) _console.Info($"{filePattern}\t");
+            _console.Blank();
         }
 
         protected override bool ExecuteCommand(ICollection<Exception> exceptions)

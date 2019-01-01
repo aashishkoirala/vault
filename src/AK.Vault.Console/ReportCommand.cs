@@ -39,7 +39,8 @@ namespace AK.Vault.Console
         private readonly FileNameManager _fileNameManager;
 
         public ReportCommand(IOptionsMonitor<VaultOptions> vaultOptionsMonitor,
-            FileNameManager fileNameManager, FileEncryptorFactory fileEncryptorFactory) : base(fileEncryptorFactory, true)
+            FileNameManager fileNameManager, FileEncryptorFactory fileEncryptorFactory,
+            ConsoleWriter console) : base(fileEncryptorFactory, console, true)
         {
             _vaultOptions = vaultOptionsMonitor.CurrentValue;
             _fileNameManager = fileNameManager;
@@ -50,7 +51,7 @@ namespace AK.Vault.Console
             var encryptedFileLocation = _vaultOptions.Vaults
                 .Single(x => x.Name == VaultName).EncryptedFileLocation;
 
-            Screen.Print("Encrypted Name\tOriginal Name");
+            _console.Info("Encrypted Name\tOriginal Name");
 
             foreach (var file in Directory.GetFiles(encryptedFileLocation, "*.vault"))
             {
@@ -60,10 +61,10 @@ namespace AK.Vault.Console
                     originalName = _fileNameManager.ReadOriginalFileNameFromStream(stream);
                 }
 
-                Screen.Print("{0}\t{1}", file, originalName);
+                _console.Info($"{file}\t{originalName}");
             }
 
-            Screen.Print();
+            _console.Blank();
 
             return true;
         }

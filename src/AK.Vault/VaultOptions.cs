@@ -38,6 +38,10 @@ namespace AK.Vault
 
         public string Vault { get; set; }
 
+        public string Key { get; set; }
+        public string KeyInput { get; set; }
+        public string KeyFile { get; set; }
+
         public class VaultInfo
         {
             /// <summary>

@@ -35,7 +35,8 @@ namespace AK.Vault.Console
         private readonly string[] _filePatterns;
 
         public EncryptCommand(FileEncryptorFactory fileEncryptorFactory,
-            IOptionsMonitor<VaultOptions> vaultOptionsMonitor) : base(fileEncryptorFactory)
+            IOptionsMonitor<VaultOptions> vaultOptionsMonitor,
+            ConsoleWriter console) : base(fileEncryptorFactory, console)
         {
             var options = vaultOptionsMonitor.CurrentValue;
             if (string.IsNullOrWhiteSpace(options.Target)) return;
@@ -45,11 +46,10 @@ namespace AK.Vault.Console
 
         protected override void WriteHeader()
         {
-            Screen.Print();
-            Screen.Print("Starting encryption of the following:");
-            foreach (var filePattern in _filePatterns)
-                Screen.Print("{0}{1}", '\t', filePattern);
-            Screen.Print();
+            _console.Blank();
+            _console.Info("Starting encryption of the following:");
+            foreach (var filePattern in _filePatterns) _console.Info($"{filePattern}\t");
+            _console.Blank();
         }
 
         protected override bool ExecuteCommand(ICollection<Exception> exceptions)
@@ -59,8 +59,8 @@ namespace AK.Vault.Console
             var totalCount = results.Length;
             var doneCount = results.Count(x => x.IsDone);
 
-            Screen.Print();
-            Screen.Print("{0} of {1} files encrypted successfully.", doneCount, totalCount);
+            _console.Blank();
+            _console.Info($"{doneCount} of {totalCount} files encrypted successfully.");
 
             foreach (var result in results.Where(x => !x.IsDone && x.Exception != null))
             {

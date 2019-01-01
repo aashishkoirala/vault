@@ -36,12 +36,13 @@ namespace AK.Vault
         /// <returns>Encryption key as byte array.</returns>
         public byte[] Generate(EncryptionKeyInput input)
         {
-            var seed = $"{input.FullName}|{input.DateOfBirth}|{input.SocialSecurityNumber}|{input.PassPhrase}";
-
-            var seedBinary = Encoding.ASCII.GetBytes(seed);
+            if (input.Key != null) return input.Key;
+            var seed = Encoding.UTF8.GetBytes(input.KeyInput);
 
             using (var sha1 = SHA256.Create())
-                return sha1.ComputeHash(seedBinary);
+            {
+                return sha1.ComputeHash(seed);
+            }
         }
     }
 }

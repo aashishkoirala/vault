@@ -32,29 +32,32 @@ namespace AK.Vault.Console
     internal class CommandExecutor
     {
         private readonly ApplicationState _applicationState;
-        private readonly VaultPrompter _vaultPrompter;
-        private readonly EncryptionKeyInputPrompter _encryptionKeyInputPrompter;
+        private readonly VaultSelector _vaultSelector;
+        private readonly EncryptionKeyEvaluator _encryptionKeyEvaluator;
         private readonly VaultOptions _vaultOptions;
         private readonly Func<string, ICommand> _commandFunc;
+        private readonly ConsoleWriter _console;
 
         public CommandExecutor(ApplicationState applicationState,
-            VaultPrompter vaultPrompter, EncryptionKeyInputPrompter encryptionKeyInputPrompter,
+            VaultSelector vaultSelector, EncryptionKeyEvaluator encryptionKeyEvaluator,
             IOptionsMonitor<VaultOptions> vaultOptionsMonitor,
-            Func<string, ICommand> commandFunc)
+            Func<string, ICommand> commandFunc,
+            ConsoleWriter console)
         {
             _applicationState = applicationState;
-            _vaultPrompter = vaultPrompter;
-            _encryptionKeyInputPrompter = encryptionKeyInputPrompter;
+            _vaultSelector = vaultSelector;
+            _encryptionKeyEvaluator = encryptionKeyEvaluator;
             _vaultOptions = vaultOptionsMonitor.CurrentValue;
             _commandFunc = commandFunc;
+            _console = console;
         }
 
         public void Execute()
         {
             try
             {
-                Screen.Print(Screen.Colors.Heading, "VAULT by Aashish Koirala (c) 2014-2019");
-                Screen.Print();
+                _console.Heading("VAULT by Aashish Koirala (c) 2014-2019");
+                _console.Blank();
                 var command = ParseCommand();
                 if (command == null)
                 {
@@ -65,7 +68,7 @@ namespace AK.Vault.Console
             }
             catch (Exception ex)
             {
-                Screen.Print(Screen.Colors.Error, "Unexpected error:{0}{1}{0}", Environment.NewLine, ex);
+                _console.Error($"Unexpected error:{Environment.NewLine}{ex}{Environment.NewLine}");
                 _applicationState.ReturnCode = 1;
             }
             _applicationState.CancellationTokenSource.Cancel();
@@ -79,25 +82,25 @@ namespace AK.Vault.Console
                 var command = _commandFunc(commandName);
                 if (command == null)
                 {
-                    Screen.Print(Screen.Colors.Error, $"Invalid command: {commandName}");
+                    _console.Error($"Invalid command: {commandName}");
                     return null;
                 }
                 if (!command.IsValid)
                 {
-                    Screen.Print(Screen.Colors.Error, "Invalid parameters for {commandName}.", commandName);
+                    _console.Error($"Invalid parameters for {commandName}.");
                     return null;
                 }
 
                 var commandInfo = command.GetType().GetCustomAttribute<CommandInfoAttribute>();
 
-                var vaultName = _vaultPrompter.Prompt();
+                var vaultName = _vaultSelector.SelectVault();
                 if (vaultName == null) return null;
                 command.VaultName = vaultName;
-                Screen.Clear();
+                _console.Clear();
 
                 if (!commandInfo.RequiresEncryptionKeyInput) return command;
 
-                var encryptionKeyInput = _encryptionKeyInputPrompter.Prompt();
+                var encryptionKeyInput = _encryptionKeyEvaluator.EvaluateEncryptionKey();
                 if (encryptionKeyInput == null) return null;
                 command.AssignEncryptionKeyInput(encryptionKeyInput);
 
@@ -105,36 +108,45 @@ namespace AK.Vault.Console
             }
             catch (Exception ex)
             {
-                Screen.Print(Screen.Colors.Error, "Error parsing command: {0}", ex.Message);
+                _console.Error($"Error parsing command: {ex.Message}");
                 return null;
             }
         }
 
-        private static void PrintUsage()
+        private void PrintUsage()
         {
-            Screen.Print();
-            Screen.Print(Screen.Colors.Heading, "Usage:");
-            Screen.Print("\tvault [launch]");
-            Screen.Print("\t\tLaunches the interactive application.");
-            Screen.Print();
-            Screen.Print("\tvault encrypt filepattern1 [filepattern2] [filepattern3] ...");
-            Screen.Print("\t\tEncrypts the given files.");
-            Screen.Print();
-            Screen.Print("\tvault encrypt filepattern1 [filepattern2] [filepattern3] ...");
-            Screen.Print("\t\tDecrypts the given files.");
-            Screen.Print();
-            Screen.Print("\tvault list");
-            Screen.Print("\t\tLists the content of the vault.");
-            Screen.Print();
-            Screen.Print("\tvault find filename");
-            Screen.Print("\t\tChecks to see if the file is in the vault and gives you the encrypted filename if it does.");
-            Screen.Print();
-            Screen.Print("\tvault fd filename1 [filename2] [filename3] ...");
-            Screen.Print("\t\tPerforms a \"find\" on each file, and if found, decrypts it.");
-            Screen.Print();
-            Screen.Print("\tvault report");
-            Screen.Print("\t\tSpits out a tabular report of all files in the vault with their encrypted names.");
-            Screen.Print();
+            _console.Blank();
+            _console.Heading("Usage:");
+            _console.Info("\tvault [--command=command-name] [--target=target] [--vault=vault-name] [--key=base64-key|--keyinput=key-input|--keyfile=key-file-path]");
+            _console.Blank();
+            _console.Info("\tcommand-name:");
+            _console.Info("\t\tlaunch\tLaunches the interactive application, default if omitted.");
+            _console.Info("\t\tencrypt\tEncrypts the files specified by the \"target\" argument.");
+            _console.Info("\t\tdecrypt\tDecrypts the files specified by the \"target\" argument.");
+            _console.Info("\t\tlist\tLists the content of the vault.");
+            _console.Info("\t\tfind\tFinds the file specified in the \"target\" argument.");
+            _console.Info("\t\tfd\tFinds and decrypts the file specified in the \"target\" argument.");
+            _console.Info("\t\treport\tSpits out a tabular report of all files in the vault with their encrypted names.");
+            _console.Blank();
+            _console.Info("\ttarget:");
+            _console.Info("\t\tOnly required when command = encrypt, decrypt, find or fd");
+            _console.Info("\t\tencrypt/decrypt\tfilepattern1;[filepattern2];[filepattern3]...");
+            _console.Info("\t\tfind/fd\tfilename");
+            _console.Blank();
+            _console.Info("\tvault-name:");
+            _console.Info("\t\tVault name to use if multiple vaults are configured. Not needed if only 1 vault is configured.");
+            _console.Info("\t\tIf multiple are configured and you don't specify this, you will be prompted to pick one.");
+            _console.Blank();
+            _console.Info("\tbase64-key:");
+            _console.Info("\t\tIf directly specifying the raw encryption key, the Base64 encoded value of the key.");
+            _console.Blank();
+            _console.Info("\tkey-input:");
+            _console.Info("\t\tIf not directly specifying the raw encryption key, the passphrase that will be used to generate the key.");
+            _console.Info("\t\tIf not provided and --key or--keyfile are not provided, this value will be prompted for.");
+            _console.Blank();
+            _console.Info("\tkey-file-path:");
+            _console.Info("\t\tIf the raw key is stored in a file, the path to the file.");
+            _console.Blank();
         }
     }
 }

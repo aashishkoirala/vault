@@ -36,6 +36,7 @@ namespace AK.Vault.Console
     {
         private readonly FileEncryptorFactory _fileEncryptorFactory;
         protected FileEncryptor _fileEncryptor;
+        protected ConsoleWriter _console;
 
         protected virtual bool PromptBeforeStart => true;
 
@@ -45,18 +46,22 @@ namespace AK.Vault.Console
 
         public virtual string VaultName { get; set; }
 
-        protected CommandBase(FileEncryptorFactory fileEncryptorFactory, bool isValid = false)
+        protected CommandBase(FileEncryptorFactory fileEncryptorFactory, 
+            ConsoleWriter console, bool isValid = false)
         {
             _fileEncryptorFactory = fileEncryptorFactory;
+            _console = console;
             IsValid = isValid;
         }
 
         public virtual void AssignEncryptionKeyInput(EncryptionKeyInput encryptionKeyInput)
         {
             _fileEncryptor = _fileEncryptorFactory.Create(encryptionKeyInput, VaultName);
-            _fileEncryptor.UpdateMessageAction =
-                message =>
-                Screen.Print(message.IsError ? Screen.Colors.Error : Screen.Colors.Normal, message.Description);
+            _fileEncryptor.UpdateMessageAction = message =>
+            {
+                if (message.IsError) _console.Error(message.Description);
+                else _console.Info(message.Description);
+            };
         }
 
         public bool Execute()
@@ -80,8 +85,8 @@ namespace AK.Vault.Console
             }
             stopWatch.Stop();
 
-            Screen.Print();
-            Screen.Print("Operation took {0}.", stopWatch.Elapsed);
+            _console.Blank();
+            _console.Info($"Operation took {stopWatch.Elapsed}.");
 
             if (exceptions.Any())
             {
@@ -96,7 +101,7 @@ namespace AK.Vault.Console
                     File.AppendAllText(errorLog, dashes);
                 }
 
-                Screen.Print(Screen.Colors.Error, "There were errors. See {0} for details.", errorLog);
+                _console.Error($"There were errors. See {errorLog} for details.");
             }
 
             if (PromptAfterEnd) PromptContinue();
@@ -109,12 +114,12 @@ namespace AK.Vault.Console
 
         protected bool PromptContinueOrCancel(string prompt = "Press ENTER to continue, ESC to Cancel.")
         {
-            if (Screen.IsRedirected) return true;
+            if (_console.IsRedirected) return true;
 
-            Screen.Print(prompt);
+            _console.Info(prompt);
             while (true)
             {
-                var keyInfo = Screen.ReadKey();
+                var keyInfo = _console.ReadKey();
                 if (keyInfo.Key == ConsoleKey.Escape) return false;
                 if (keyInfo.Key == ConsoleKey.Enter) return true;
             }
@@ -122,10 +127,10 @@ namespace AK.Vault.Console
 
         protected void PromptContinue(string prompt = "Press ENTER to continue.")
         {
-            if (Screen.IsRedirected) return;
+            if (_console.IsRedirected) return;
                         
-            Screen.Print(prompt);
-            while (Screen.ReadKey().Key != ConsoleKey.Enter) {}
+            _console.Info(prompt);
+            while (_console.ReadKey().Key != ConsoleKey.Enter) {}
         }
     }
 }

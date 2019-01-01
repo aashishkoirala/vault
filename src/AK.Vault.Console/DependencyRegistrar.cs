@@ -18,16 +18,24 @@
  * 
  *******************************************************************************************************************************/
 
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace AK.Vault.Console
 {
-    public static class CommandRegistrar
+    internal static class DependencyRegistrar
     {
-        public static IServiceCollection AddVaultConsoleCommands(this IServiceCollection services)
+        public static IServiceCollection AddVaultConsoleServices(
+            this IServiceCollection services, ApplicationState applicationState) => services
+                .AddSingleton<VaultSelector>()
+                .AddSingleton<CommandExecutor>()
+                .AddSingleton<EncryptionKeyEvaluator>()
+                .AddSingleton(applicationState)
+                .AddCommands();
+
+        private static IServiceCollection AddCommands(this IServiceCollection services)
         {
             var assembly = typeof(ICommand).Assembly;
             var commandTypes = assembly.GetTypes().Where(x => x != typeof(CommandBase) && x.GetInterfaces().Any(y => y == typeof(ICommand))).ToArray();

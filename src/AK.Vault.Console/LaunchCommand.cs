@@ -33,13 +33,14 @@ namespace AK.Vault.Console
         private Launcher _launcher;
         private readonly ListGenerator _listGenerator;
 
-        public LaunchCommand(ListGenerator listGenerator, FileEncryptorFactory fileEncryptorFactory) :
-            base(fileEncryptorFactory, true) => _listGenerator = listGenerator;
+        public LaunchCommand(ListGenerator listGenerator, 
+            FileEncryptorFactory fileEncryptorFactory, ConsoleWriter console) :
+            base(fileEncryptorFactory, console, true) => _listGenerator = listGenerator;
 
         public override void AssignEncryptionKeyInput(EncryptionKeyInput encryptionKeyInput)
         {
             base.AssignEncryptionKeyInput(encryptionKeyInput);
-            _launcher = new Launcher(_fileEncryptor, _listGenerator, VaultName);
+            _launcher = new Launcher(_fileEncryptor, _listGenerator, _console, VaultName);
         }
 
         protected override bool PromptAfterEnd => false;
@@ -50,8 +51,8 @@ namespace AK.Vault.Console
         {
             try
             {
-                Screen.Print();
-                Screen.Print("Launching application...");
+                _console.Blank();
+                _console.Info("Launching application...");
                 _launcher.Run();
                 return true;
             }

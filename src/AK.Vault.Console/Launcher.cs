@@ -41,6 +41,7 @@ namespace AK.Vault.Console
         private readonly IDictionary<ConsoleKey, ExecutableMenuItem> _executableMenu;
         private static readonly char[] MenuKeyChars = 
             new[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E' };
+        private readonly ConsoleWriter _console;
 
         private IDictionary<char, SelectableMenuItem> _selectableMenu;
         private FolderEntry _currentFolder;
@@ -48,11 +49,13 @@ namespace AK.Vault.Console
         private SelectableMenuItem _selectedMenuItem;
         private bool _isRunning = true;
 
-        public Launcher(FileEncryptor fileEncryptor, ListGenerator listGenerator, string vaultName)
+        public Launcher(FileEncryptor fileEncryptor, ListGenerator listGenerator, 
+            ConsoleWriter console, string vaultName)
         {
             _fileEncryptor = fileEncryptor;
             _currentFolder = listGenerator.Generate(vaultName);
             _executableMenu = BuildExecutableMenu();
+            _console = console;
         }
 
         public void Run()
@@ -60,7 +63,7 @@ namespace AK.Vault.Console
             BuildSelectableMenu();
             if (!_selectableMenu.Any())
             {
-                Screen.Print("There is nothing in the vault");
+                _console.Info("There is nothing in the vault");
                 return;
             }
 
@@ -68,10 +71,9 @@ namespace AK.Vault.Console
 
             while (_isRunning)
             {
-                var keyInfo = Screen.ReadKey();
+                var keyInfo = _console.ReadKey();
 
-                ExecutableMenuItem executableMenuItem;
-                if (_executableMenu.TryGetValue(keyInfo.Key, out executableMenuItem))
+                if (_executableMenu.TryGetValue(keyInfo.Key, out ExecutableMenuItem executableMenuItem))
                 {
                     if (!executableMenuItem.Visible) continue;
 
@@ -83,9 +85,8 @@ namespace AK.Vault.Console
                 }
 
                 var keyChar = keyInfo.KeyChar.ToString(CultureInfo.InvariantCulture).ToUpper()[0];
-                
-                SelectableMenuItem selectableMenuItem;
-                if (!_selectableMenu.TryGetValue(keyChar, out selectableMenuItem)) continue;
+
+                if (!_selectableMenu.TryGetValue(keyChar, out SelectableMenuItem selectableMenuItem)) continue;
 
                 _selectedMenuItem = selectableMenuItem;
                 PrintMenu();
@@ -146,35 +147,29 @@ namespace AK.Vault.Console
 
         private void PrintMenu()
         {
-            Screen.Clear();
-            Screen.Print(Screen.Colors.Heading, " VAULT by Aashish Koirala (c) 2014");
-            Screen.Print();
-            Screen.Print(" {0}", new string('─', 70));
-            Screen.Print();
+            _console.Clear();
+            _console.Heading(" VAULT by Aashish Koirala (c) 2014-2019");
+            _console.Blank();
+            _console.Info($" {new string('─', 70)}");
+            _console.Blank();
 
             foreach (var key in _selectableMenu.Keys)
             {
                 var item = _selectableMenu[key];
 
-                var foreColor = item == _selectedMenuItem
-                                    ? Screen.Colors.CurrentBackground
-                                    : Screen.Colors.CurrentForeground;
-
-                var backColor = item == _selectedMenuItem
-                                    ? Screen.Colors.CurrentForeground
-                                    : Screen.Colors.CurrentBackground;
-
-                System.Console.Write("  ");
-                Screen.Print(foreColor, backColor, " {0} - {1} ", key,
-                             item.IsFolder ? $"[{item.FolderEntry.Name}]" : item.FileEntry.Name);
+                _console.Info("  ", true);
+                var name = item.IsFolder ? $"[{item.FolderEntry.Name}]" : item.FileEntry.Name;
+                var line = $" {key} - {name} ";
+                if (item == _selectedMenuItem) _console.Highlight(line);
+                else _console.Info(line);
             }
 
-            Screen.Print();
-            Screen.Print(" {0}", new string('─', 70));
-            Screen.Print();
+            _console.Blank();
+            _console.Info($" {new string('─', 70)}");
+            _console.Blank();
 
             foreach (var pair in _executableMenu.Where(pair => pair.Value.Visible))
-                Screen.Print("   {0} - {1}", pair.Key.ToString(), pair.Value.Name);
+                _console.Info($"   {pair.Key} - {pair.Value.Name}");
         }
 
         private void OpenSelected()
@@ -190,15 +185,15 @@ namespace AK.Vault.Console
             var path = _selectedMenuItem.IsFolder ? DecryptSelectedFolder() : DecryptSelectedFile();
             if (string.IsNullOrWhiteSpace(path)) return;
 
-            Screen.Print("What would you like to do with:{0}\"{1}\"?", Environment.NewLine, path);
-            Screen.Print();
-            Screen.Print("1 - Launch It");
-            if (!_selectedMenuItem.IsFolder) Screen.Print("2 - Open Containing Folder");
-            Screen.Print("Escape - Do Nothing");
+            _console.Info($"What would you like to do with:{Environment.NewLine}\"{path}\"?");
+            _console.Blank();
+            _console.Info("1 - Launch It");
+            if (!_selectedMenuItem.IsFolder) _console.Info("2 - Open Containing Folder");
+            _console.Info("Escape - Do Nothing");
 
             while (true)
             {
-                var keyInfo = Screen.ReadKey();
+                var keyInfo = _console.ReadKey();
                 if (keyInfo.KeyChar == '1')
                 {
                     LaunchPath(path);
@@ -215,8 +210,8 @@ namespace AK.Vault.Console
 
         private string DecryptSelectedFile()
         {
-            Screen.Print("Decrypting {0}...", _selectedMenuItem.FileEntry.OriginalFullPath);
-            Screen.Print();
+            _console.Info($"Decrypting {_selectedMenuItem.FileEntry.OriginalFullPath}...");
+            _console.Blank();
 
             Exception exception;
             try
@@ -234,18 +229,18 @@ namespace AK.Vault.Console
                 exception = ex;
             }
 
-            Screen.Print(Screen.Colors.Error, "There was a problem decrypting: {0}", exception.Message);
-            Screen.Print();
-            Screen.Print("Press any key to continue.");
-            Screen.ReadKey();
+            _console.Error($"There was a problem decrypting: {exception.Message}");
+            _console.Blank();
+            _console.Info("Press any key to continue.");
+            _console.ReadKey();
 
             return null;
         }
 
         private string DecryptSelectedFolder()
         {
-            Screen.Print("Decrypting {0}...", _selectedMenuItem.FolderEntry.FullPath);
-            Screen.Print();
+            _console.Info($"Decrypting {_selectedMenuItem.FolderEntry.FullPath}...");
+            _console.Blank();
 
             var files = new Collection<FileEntry>();
             TraverseFolder(_selectedMenuItem.FolderEntry, files);
@@ -256,16 +251,16 @@ namespace AK.Vault.Console
 
             var doneCount = results.Count(x => x.IsDone);
 
-            Screen.Print("{0} of {1} files decrypted successfully.", doneCount, results.Length);
+            _console.Info($"{doneCount} of {results.Length} files decrypted successfully.");
 
             return doneCount > 0 ? Path.GetDirectoryName(results.First(x => x.IsDone).UnencryptedFilePath) : null;
         }
 
-        private static void LaunchPath(string path)
+        private void LaunchPath(string path)
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                Screen.Print(ConsoleColor.Red, "Sorry launching from here is not permitted on this OS.");
+                _console.Error("Sorry launching from here is not permitted on this OS.");
                 return;
             }
 

@@ -43,7 +43,8 @@ namespace AK.Vault.Console
 
         public FindCommand(IConfiguration configuration, FileNameManager fileNameManager, 
             IOptionsMonitor<VaultOptions> vaultOptionsMonitor, 
-            FileEncryptorFactory fileEncryptorFactory) : base(fileEncryptorFactory)
+            FileEncryptorFactory fileEncryptorFactory, ConsoleWriter console) : 
+            base(fileEncryptorFactory, console)
         {
             _configuration = configuration;
             _fileNameManager = fileNameManager;
@@ -65,7 +66,7 @@ namespace AK.Vault.Console
             var fullPath = Path.Combine(encryptedFileLocation, encryptedName);
 
             fullPath = File.Exists(fullPath) ? fullPath : null;
-            Screen.Print(fullPath ?? "Not found.");
+            _console.Info(fullPath ?? "Not found.");
 
             if (fullPath != null) FileFound?.Invoke(fullPath);
 

@@ -34,8 +34,8 @@ namespace AK.Vault.Console
 
         private readonly ListGenerator _listGenerator;
 
-        public ListCommand(ListGenerator listGenerator, FileEncryptorFactory fileEncryptorFactory) :
-            base(fileEncryptorFactory, true) => _listGenerator = listGenerator;
+        public ListCommand(ListGenerator listGenerator, FileEncryptorFactory fileEncryptorFactory,
+            ConsoleWriter console) : base(fileEncryptorFactory, console, true) => _listGenerator = listGenerator;
 
         protected override bool ExecuteCommand(ICollection<Exception> exceptions)
         {
@@ -43,20 +43,20 @@ namespace AK.Vault.Console
             return true;
         }
 
-        private static void PrintListItem(FolderEntry entry, string indent = null)
+        private void PrintListItem(FolderEntry entry, string indent = null)
         {
             indent = indent ?? string.Empty;
-            Screen.Print("{0} [{1}]", indent, entry.Name);
+            _console.Info($"{indent} [{entry.Name}]");
             indent += ">";
 
             foreach (var file in entry.Files) PrintListItem(file, indent);
             foreach (var folder in entry.Folders) PrintListItem(folder, indent);
         }
 
-        private static void PrintListItem(FileEntry entry, string indent)
+        private void PrintListItem(FileEntry entry, string indent)
         {
             indent = indent ?? string.Empty;
-            Screen.Print("{0} {1}", indent, entry.Name);
+            _console.Info($"{indent} {entry.Name}");
         }
     }
 }

@@ -28,13 +28,18 @@ namespace AK.Vault.Console
     /// Promps the user for which vault to work with.
     /// </summary>
     /// <author>Aashish Koirala</author>
-    internal class VaultPrompter
+    internal class VaultSelector
     {
         private readonly VaultOptions _vaultOptions;
+        private readonly ConsoleWriter _console;
 
-        public VaultPrompter(IOptionsMonitor<VaultOptions> vaultOptionsMonitor) => _vaultOptions = vaultOptionsMonitor.CurrentValue;
+        public VaultSelector(IOptionsMonitor<VaultOptions> vaultOptionsMonitor, ConsoleWriter console)
+        {
+            _vaultOptions = vaultOptionsMonitor.CurrentValue;
+            _console = console;
+        }
 
-        public string Prompt()
+        public string SelectVault()
         {
             var vaults = _vaultOptions.Vaults;
             var vault = _vaultOptions.Vault;
@@ -43,37 +48,36 @@ namespace AK.Vault.Console
                 if (vaults.Any(x => x.Name == vault)) return vault;
                 else
                 {
-                    Screen.Print($"Invalid vault- {vault}.");
+                    _console.Error($"Invalid vault- {vault}.");
                     return null;
                 }
             }
 
             if (!vaults.Any())
             {
-                Screen.Print("Oops - no vaults configured!");
+                _console.Error("Oops - no vaults configured!");
                 return null;
             }
 
             if (vaults.Count == 1) return vaults.Single().Name;
 
-            Screen.Print("Please pick a vault to work with:");
-            Screen.Print("Press ESC to Cancel.");
-            Screen.Print();
+            _console.Info("Please pick a vault to work with:");
+            _console.Info("Press ESC to Cancel.");
+            _console.Blank();
 
             var menuItems = vaults
                 .OrderBy(x => x.Name)
                 .Select((x, i) => new {Key = GetKeyChar(i), Value = x.Name})
                 .ToDictionary(x => x.Key, x => x.Value);
 
-            foreach (var key in menuItems.Keys) Screen.Print("{0} - {1}", key, menuItems[key]);
+            foreach (var key in menuItems.Keys) _console.Info($"{key} - {menuItems[key]}");
 
             while (true)
             {
-                var keyInfo = Screen.ReadKey();
+                var keyInfo = _console.ReadKey();
                 if (keyInfo.Key == ConsoleKey.Escape) return null;
 
-                string vaultName;
-                if (menuItems.TryGetValue(keyInfo.KeyChar, out vaultName)) return vaultName;
+                if (menuItems.TryGetValue(keyInfo.KeyChar, out string vaultName)) return vaultName;
                 if (menuItems.TryGetValue(keyInfo.KeyChar.ToString().ToUpper()[0], out vaultName)) return vaultName;
                 if (menuItems.TryGetValue(keyInfo.KeyChar.ToString().ToLower()[0], out vaultName)) return vaultName;
             }
