@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace AK.Vault.Console
 {
@@ -48,24 +49,27 @@ namespace AK.Vault.Console
             _fileNameManager = fileNameManager;
         }
 
-        protected override bool ExecuteCommand(ICollection<Exception> exceptions)
+        protected override async Task<bool> ExecuteCommand(ICollection<Exception> exceptions)
         {
             var encryptedFileLocation = _vaultOptions.Vaults
                 .Single(x => x.Name == VaultName).EncryptedFileLocation;
 
             _console.Info("Encrypted Name\tOriginal Name");
 
+            var tasks = new Dictionary<string, Task<string>>();
             foreach (var file in Directory.GetFiles(encryptedFileLocation, "*.vault"))
             {
-                string originalName;
                 using (var stream = File.OpenRead(file))
                 {
-                    originalName = _fileNameManager.ReadOriginalFileNameFromStream(stream);
+                    tasks[file] = _fileNameManager.ReadOriginalFileNameFromStream(stream);
                 }
-
-                _console.Info($"{file}\t{originalName}");
             }
 
+            foreach (var item in tasks)
+            {
+                var originalName = await item.Value;
+                _console.Info($"{item.Key}\t{originalName}");
+            }
             _console.Blank();
 
             return true;

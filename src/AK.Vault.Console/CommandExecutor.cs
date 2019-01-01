@@ -67,13 +67,13 @@ namespace AK.Vault.Console
             {
                 _console.Heading("VAULT by Aashish Koirala (c) 2014-2019");
                 _console.Blank();
-                var command = ParseCommand();
+                var command = await ParseCommand();
                 if (command == null)
                 {
                     PrintUsage();
                     _applicationState.ReturnCode = 1;
                 }
-                else _applicationState.ReturnCode = command.Execute() ? 0 : 1;
+                else _applicationState.ReturnCode = (await command.Execute()) ? 0 : 1;
             }
             catch (Exception ex)
             {
@@ -86,7 +86,7 @@ namespace AK.Vault.Console
 
         public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-        private ICommand ParseCommand()
+        private async Task<ICommand> ParseCommand()
         {
             try
             {
@@ -112,7 +112,7 @@ namespace AK.Vault.Console
 
                 if (!commandInfo.RequiresEncryptionKeyInput) return command;
 
-                var encryptionKeyInput = _encryptionKeyEvaluator.EvaluateEncryptionKey();
+                var encryptionKeyInput = await _encryptionKeyEvaluator.EvaluateEncryptionKeyInput();
                 if (encryptionKeyInput == null) return null;
                 command.AssignEncryptionKeyInput(encryptionKeyInput);
 

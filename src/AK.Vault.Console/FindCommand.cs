@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace AK.Vault.Console
 {
@@ -58,8 +59,10 @@ namespace AK.Vault.Console
 
         protected override bool PromptBeforeStart => false;
 
-        protected override bool ExecuteCommand(ICollection<Exception> exceptions)
+        protected override async Task<bool> ExecuteCommand(ICollection<Exception> exceptions)
         {
+            await Task.CompletedTask;
+
             var encryptedFileLocation = _vaultOptions.Vaults
                 .Single(x => x.Name == VaultName).EncryptedFileLocation;
 

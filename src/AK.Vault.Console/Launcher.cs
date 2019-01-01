@@ -27,6 +27,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace AK.Vault.Console
 {
@@ -39,8 +40,9 @@ namespace AK.Vault.Console
         private const int ItemsPerPage = 15;
 
         private readonly FileEncryptor _fileEncryptor;
+        private readonly ListGenerator _listGenerator;
         private readonly IDictionary<ConsoleKey, ExecutableMenuItem> _executableMenu;
-        private static readonly char[] MenuKeyChars = 
+        private static readonly char[] MenuKeyChars =
             new[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E' };
         private readonly ConsoleWriter _console;
         private readonly ILogger _logger;
@@ -51,18 +53,19 @@ namespace AK.Vault.Console
         private SelectableMenuItem _selectedMenuItem;
         private bool _isRunning = true;
 
-        public Launcher(FileEncryptor fileEncryptor, ListGenerator listGenerator, 
-            ConsoleWriter console, string vaultName, ILogger logger)
+        public Launcher(FileEncryptor fileEncryptor, ListGenerator listGenerator, ConsoleWriter console, ILogger logger)
         {
             _fileEncryptor = fileEncryptor;
-            _currentFolder = listGenerator.Generate(vaultName);
+            _listGenerator = listGenerator;
             _executableMenu = BuildExecutableMenu();
             _console = console;
             _logger = logger;
         }
 
-        public void Run()
+        public async Task Run(string vaultName)
         {
+            _currentFolder = await _listGenerator.Generate(vaultName);
+
             BuildSelectableMenu();
             if (!_selectableMenu.Any())
             {
@@ -80,7 +83,7 @@ namespace AK.Vault.Console
                 {
                     if (!executableMenuItem.Visible) continue;
 
-                    executableMenuItem.Execute();
+                    await executableMenuItem.Execute();
                     if (!_isRunning) break;
 
                     PrintMenu();
@@ -104,9 +107,9 @@ namespace AK.Vault.Console
                     .Skip(_itemIndex)
                     .Take(ItemsPerPage)
                     .Select(x => x is FileEntry
-                                     ? new SelectableMenuItem((FileEntry) x)
+                                     ? new SelectableMenuItem((FileEntry)x)
                                      : new SelectableMenuItem(x as FolderEntry))
-                    .Select((x, i) => new {Key = MenuKeyChars[i], Value = x})
+                    .Select((x, i) => new { Key = MenuKeyChars[i], Value = x })
                     .ToDictionary(x => x.Key, x => x.Value);
 
             _selectedMenuItem = _selectableMenu.First().Value;
@@ -183,9 +186,9 @@ namespace AK.Vault.Console
             BuildSelectableMenu();
         }
 
-        private void DecryptSelected()
+        private async Task DecryptSelected()
         {
-            var path = _selectedMenuItem.IsFolder ? DecryptSelectedFolder() : DecryptSelectedFile();
+            var path = _selectedMenuItem.IsFolder ? await DecryptSelectedFolder() : await DecryptSelectedFile();
             if (string.IsNullOrWhiteSpace(path)) return;
 
             _console.Info($"What would you like to do with:{Environment.NewLine}\"{path}\"?");
@@ -211,7 +214,7 @@ namespace AK.Vault.Console
             }
         }
 
-        private string DecryptSelectedFile()
+        private async Task<string> DecryptSelectedFile()
         {
             _console.Info($"Decrypting {_selectedMenuItem.FileEntry.OriginalFullPath}...");
             _console.Blank();
@@ -219,7 +222,7 @@ namespace AK.Vault.Console
             Exception exception;
             try
             {
-                var results =
+                var results = await
                     _fileEncryptor.Decrypt(new[]
                         {Path.GetFileName(_selectedMenuItem.FileEntry.EncryptedFullPath)});
                 var result = results.Single();
@@ -241,7 +244,7 @@ namespace AK.Vault.Console
             return null;
         }
 
-        private string DecryptSelectedFolder()
+        private async Task<string> DecryptSelectedFolder()
         {
             _console.Info($"Decrypting {_selectedMenuItem.FolderEntry.FullPath}...");
             _console.Blank();
@@ -251,7 +254,7 @@ namespace AK.Vault.Console
 
             var filePatternList = files.Select(x => Path.GetFileName(x.EncryptedFullPath));
 
-            var results = _fileEncryptor.Decrypt(filePatternList).ToArray();
+            var results = (await _fileEncryptor.Decrypt(filePatternList)).ToArray();
 
             var doneCount = results.Count(x => x.IsDone);
 
@@ -339,10 +342,17 @@ namespace AK.Vault.Console
 
     internal class ExecutableMenuItem
     {
-        private readonly Action _action;
+        private readonly Func<Task> _action;
         private readonly Func<bool> _showIf;
 
-        public ExecutableMenuItem(string name, Action action, Func<bool> showIf)
+        public ExecutableMenuItem(string name, Action action, Func<bool> showIf) : this(name, async () =>
+        {
+            await Task.CompletedTask;
+            action();
+        }, showIf)
+        { }
+
+        public ExecutableMenuItem(string name, Func<Task> action, Func<bool> showIf)
         {
             Name = name;
             _action = action;
@@ -353,6 +363,6 @@ namespace AK.Vault.Console
 
         public bool Visible => _showIf();
 
-        public void Execute() => _action();
+        public async Task Execute() => await _action();
     }
 }

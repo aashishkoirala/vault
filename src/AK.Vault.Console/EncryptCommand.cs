@@ -23,6 +23,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace AK.Vault.Console
 {
@@ -54,9 +55,9 @@ namespace AK.Vault.Console
             _console.Blank();
         }
 
-        protected override bool ExecuteCommand(ICollection<Exception> exceptions)
+        protected override async Task<bool> ExecuteCommand(ICollection<Exception> exceptions)
         {
-            var results = _fileEncryptor.Encrypt(_filePatterns).ToArray();
+            var results = (await _fileEncryptor.Encrypt(_filePatterns)).ToArray();
 
             var totalCount = results.Length;
             var doneCount = results.Count(x => x.IsDone);

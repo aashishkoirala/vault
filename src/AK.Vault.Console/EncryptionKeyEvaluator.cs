@@ -22,7 +22,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace AK.Vault.Console
 {
@@ -49,17 +51,18 @@ namespace AK.Vault.Console
         /// by the application.
         /// </summary>
         /// <returns>Encryption key input structure (or NULL if cancelled).</returns>
-        public EncryptionKeyInput EvaluateEncryptionKey()
+        public async Task<EncryptionKeyInput> EvaluateEncryptionKeyInput()
         {
             if (!string.IsNullOrWhiteSpace(_vaultOptions.Key))
             {
-                var span = new Span<byte>();
-                if (!Convert.TryFromBase64String(_vaultOptions.Key, span, out var bytesWritten))
+                var convertOutput = new byte[_vaultOptions.Key.Length];
+                if (!Convert.TryFromBase64String(_vaultOptions.Key, convertOutput, out var bytesWritten))
                 {
                     _console.Error("Invalid format for Base64 key.");
                     return null;
                 }
-                return new EncryptionKeyInput { Key = span.ToArray() };
+                var key = convertOutput.Take(bytesWritten).ToArray();
+                return new EncryptionKeyInput { Key = key };
             }
 
             if (!string.IsNullOrWhiteSpace(_vaultOptions.KeyFile))
@@ -68,7 +71,7 @@ namespace AK.Vault.Console
                 {
                     var path = _vaultOptions.KeyFile;
                     if (!Path.IsPathRooted(path)) path = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), path));
-                    return new EncryptionKeyInput { Key = File.ReadAllBytes(path) };
+                    return new EncryptionKeyInput { Key = await File.ReadAllBytesAsync(path) };
                 }
                 catch (Exception ex)
                 {

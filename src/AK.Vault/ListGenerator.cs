@@ -50,7 +50,7 @@ namespace AK.Vault
         /// </summary>
         /// <param name="vaultName">Vault name.</param>
         /// <returns></returns>
-        public FolderEntry Generate(string vaultName)
+        public async Task<FolderEntry> Generate(string vaultName)
         {
             var encryptedFileLocation = _vaultOptions.Vaults
                 .Single(x => x.Name == vaultName).EncryptedFileLocation;
@@ -60,7 +60,12 @@ namespace AK.Vault
                 .Select(x => new FileNameInfo {Original = string.Empty, Encrypted = x})
                 .ToArray();
 
-            Parallel.ForEach(files, x => x.Original = ExtractFileName(x.Encrypted));
+            var taskHash = files.ToDictionary(x => x.Original, x => ExtractFileName(x.Encrypted));
+
+            foreach(var file in files)
+            {
+                file.Encrypted = await taskHash[file.Original];
+            }
 
             var fileMap = files.ToDictionary(x => x.Original, x => x.Encrypted);
 
@@ -115,10 +120,12 @@ namespace AK.Vault
             return parentFolderEntry;
         }
 
-        private string ExtractFileName(string encryptedFile)
+        private async Task<string> ExtractFileName(string encryptedFile)
         {
             using (var stream = File.OpenRead(encryptedFile))
-                return _fileNameManager.ReadOriginalFileNameFromStream(stream);
+            {
+                return await _fileNameManager.ReadOriginalFileNameFromStream(stream);
+            }
         }
 
         private class FileNameInfo

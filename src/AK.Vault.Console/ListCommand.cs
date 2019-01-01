@@ -21,6 +21,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AK.Vault.Console
 {
@@ -40,9 +41,9 @@ namespace AK.Vault.Console
             ConsoleWriter console, ILogger<ListCommand> logger) : 
             base(fileEncryptorFactory, console, logger, true) => _listGenerator = listGenerator;
 
-        protected override bool ExecuteCommand(ICollection<Exception> exceptions)
+        protected override async Task<bool> ExecuteCommand(ICollection<Exception> exceptions)
         {
-            PrintListItem(_listGenerator.Generate(VaultName));
+            PrintListItem(await _listGenerator.Generate(VaultName));
             return true;
         }
 

@@ -22,6 +22,7 @@ using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace AK.Vault
 {
@@ -53,15 +54,15 @@ namespace AK.Vault
         /// </summary>
         /// <param name="fileName">Original file name.</param>
         /// <param name="stream">Stream to write to.</param>
-        public void WriteOriginalFileNameToStream(string fileName, Stream stream)
+        public async Task WriteOriginalFileNameToStream(string fileName, Stream stream)
         {
             var data = Encoding.UTF8.GetBytes(fileName);
             var base64EncodedString = Convert.ToBase64String(data);
             data = Encoding.ASCII.GetBytes(base64EncodedString);
 
             var lengthData = BitConverter.GetBytes(data.Length);
-            stream.Write(lengthData, 0, 4);
-            stream.Write(data, 0, data.Length);
+            await stream.WriteAsync(lengthData, 0, 4);
+            await stream.WriteAsync(data, 0, data.Length);
         }
 
         /// <summary>
@@ -70,13 +71,13 @@ namespace AK.Vault
         /// </summary>
         /// <param name="stream">Stream to read from.</param>
         /// <returns>Original file name.</returns>
-        public string ReadOriginalFileNameFromStream(Stream stream)
+        public async Task<string> ReadOriginalFileNameFromStream(Stream stream)
         {
             var lengthData = new byte[4];
-            stream.Read(lengthData, 0, lengthData.Length);
+            await stream.ReadAsync(lengthData, 0, lengthData.Length);
 
             var data = new byte[BitConverter.ToInt32(lengthData, 0)];
-            stream.Read(data, 0, data.Length);
+            await stream.ReadAsync(data, 0, data.Length);
 
             var base64EncodedString = Encoding.ASCII.GetString(data);
             data = Convert.FromBase64String(base64EncodedString);

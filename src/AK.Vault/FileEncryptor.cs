@@ -81,13 +81,13 @@ namespace AK.Vault
         /// List of FileEncryptionResult instances representing the encryption result for each
         /// file in the set.
         /// </returns>
-        public IEnumerable<FileEncryptionResult> Encrypt(IEnumerable<string> filePatterns)
+        public async Task<IEnumerable<FileEncryptionResult>> Encrypt(IEnumerable<string> filePatterns)
         {
             var results = filePatterns
                 .SelectMany(GetEncryptionResultListForEncryption)
                 .ToArray();
 
-            ExecuteBatch(results, EncryptFile);
+            await ExecuteBatch(results, EncryptFile);
 
             return results;
         }
@@ -103,13 +103,13 @@ namespace AK.Vault
         /// List of FileEncryptionResult instances representing the decryption result for each
         /// file in the set.
         /// </returns>
-        public IEnumerable<FileEncryptionResult> Decrypt(IEnumerable<string> filePatterns)
+        public async Task<IEnumerable<FileEncryptionResult>> Decrypt(IEnumerable<string> filePatterns)
         {
             var results = filePatterns
                 .SelectMany(GetEncryptionResultListForDecryption)
                 .ToArray();
 
-            ExecuteBatch(results, DecryptFile);
+            await ExecuteBatch(results, DecryptFile);
 
             return results;
         }
@@ -149,34 +149,30 @@ namespace AK.Vault
                 .ToArray();
         }
 
-        private void ExecuteBatch(IEnumerable<FileEncryptionResult> results, Action<FileEncryptionResult> action)
+        private async Task ExecuteBatch(IEnumerable<FileEncryptionResult> results, Func<FileEncryptionResult, Task> action)
         {
-            // ReSharper disable AccessToDisposedClosure
-
             using (var cancellationTokenSource = new CancellationTokenSource())
             {
-                using (var task = Task.Factory.StartNew(
-                    () => ProcessMessageUpdate(cancellationTokenSource), cancellationTokenSource.Token))
+                var cancellationToken = cancellationTokenSource.Token;
+                var processMessageUpdateTask = Task.Factory.StartNew(() => ProcessMessageUpdate(cancellationToken), cancellationToken);
+                var tasks = new List<Task>();
+                foreach (var result in results) tasks.Add(action(result));
+                foreach (var task in tasks) await task;
+                cancellationTokenSource.Cancel();
+                try
                 {
-                    Parallel.ForEach(results, action);
-                    cancellationTokenSource.Cancel();
-
-                    Info();
-
-                    // ReSharper disable once MethodSupportsCancellation
-                    //
-                    task.Wait();
+                    await processMessageUpdateTask;
                 }
+                catch (OperationCanceledException) { }
+                Info();
             }
-
-            // ReSharper restore AccessToDisposedClosure            
         }
 
-        private void ProcessMessageUpdate(CancellationTokenSource cancellationTokenSource)
+        private void ProcessMessageUpdate(CancellationToken cancellationToken)
         {
             while (true)
             {
-                if (cancellationTokenSource.IsCancellationRequested) break;
+                if (cancellationToken.IsCancellationRequested) break;
 
                 var message = _messages.Take();
                 if (message == Message.Empty) continue;
@@ -185,7 +181,7 @@ namespace AK.Vault
             }
         }
 
-        private void EncryptFile(FileEncryptionResult encryptionResult)
+        private async Task EncryptFile(FileEncryptionResult encryptionResult)
         {
             if (encryptionResult.IsDone) return;
             try
@@ -203,8 +199,8 @@ namespace AK.Vault
                     inFile = File.OpenRead(encryptionResult.UnencryptedFilePath),
                     outFile = File.OpenWrite(encryptionResult.EncryptedFilePath))
                 {
-                    _fileNameManager.WriteOriginalFileNameToStream(encryptionResult.UnencryptedFilePath, outFile);
-                    _symmetricEncryptor.Encrypt(_parameters, inFile, outFile);
+                    await _fileNameManager.WriteOriginalFileNameToStream(encryptionResult.UnencryptedFilePath, outFile);
+                    await _symmetricEncryptor.Encrypt(_parameters, inFile, outFile);
                 }
 
                 encryptionResult.IsDone = true;
@@ -217,7 +213,7 @@ namespace AK.Vault
             }
         }
 
-        private void DecryptFile(FileEncryptionResult encryptionResult)
+        private async Task DecryptFile(FileEncryptionResult encryptionResult)
         {
             try
             {
@@ -226,7 +222,7 @@ namespace AK.Vault
                 Info($"[{sourceFileName}]: Deciphering name...");
                 using (var inFile = File.OpenRead(sourceFileName))
                 {
-                    encryptionResult.UnencryptedFilePath = _fileNameManager.ReadOriginalFileNameFromStream(inFile);
+                    encryptionResult.UnencryptedFilePath = await _fileNameManager.ReadOriginalFileNameFromStream(inFile);
                     Info($"[{encryptionResult.UnencryptedFilePath}]: Decrypting...");
 
                     var targetDirectory = Path.GetDirectoryName(encryptionResult.UnencryptedFilePath);
@@ -252,7 +248,7 @@ namespace AK.Vault
                         targetDirectory, Path.GetFileName(encryptionResult.UnencryptedFilePath));
 
                     using (var outFile = File.OpenWrite(encryptionResult.UnencryptedFilePath))
-                        _symmetricEncryptor.Decrypt(_parameters, inFile, outFile);
+                        await _symmetricEncryptor.Decrypt(_parameters, inFile, outFile);
                 }
 
                 encryptionResult.IsDone = true;

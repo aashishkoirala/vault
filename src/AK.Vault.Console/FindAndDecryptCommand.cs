@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace AK.Vault.Console
 {
@@ -68,7 +69,7 @@ namespace AK.Vault.Console
             _console.Blank();
         }
 
-        protected override bool ExecuteCommand(ICollection<Exception> exceptions)
+        protected override async Task<bool> ExecuteCommand(ICollection<Exception> exceptions)
         {
             var filesToDecrypt = new List<string>();
 
@@ -77,7 +78,7 @@ namespace AK.Vault.Console
             foreach (var fileToFind in _filesToFindAndDecrypt)
             {
                 //findCommand.AssignParameters(new[] {fileToFind});
-                var findResult = _findCommand.Execute();
+                var findResult = await _findCommand.Execute();
                 if (!findResult) return false;
             }
 
@@ -88,7 +89,7 @@ namespace AK.Vault.Console
             _decryptCommand.VaultName = VaultName;
             //decryptCommand.AssignParameters(filesToDecrypt.ToArray());
             _decryptCommand.AssignEncryptionKeyInput(_localEncryptionKeyInput);
-            return _decryptCommand.Execute();
+            return await _decryptCommand.Execute();
         }
     }
 }

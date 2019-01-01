@@ -18,6 +18,8 @@
  * 
  *******************************************************************************************************************************/
 
+using System.Threading.Tasks;
+
 namespace AK.Vault.Console
 {
     /// <summary>
@@ -48,6 +50,6 @@ namespace AK.Vault.Console
         /// Executes the command.
         /// </summary>
         /// <returns>Whether execution was successful.</returns>
-        bool Execute();
+        Task<bool> Execute();
     }
 }

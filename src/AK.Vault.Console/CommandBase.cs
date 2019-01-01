@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace AK.Vault.Console
 {
@@ -73,7 +74,7 @@ namespace AK.Vault.Console
             };
         }
 
-        public bool Execute()
+        public async Task<bool> Execute()
         {
             WriteHeader();
             if (PromptBeforeStart && !PromptContinueOrCancel()) return false;
@@ -86,7 +87,7 @@ namespace AK.Vault.Console
             var result = false;
             try
             {
-                result = ExecuteCommand(exceptions);
+                result = await ExecuteCommand(exceptions);
             }
             catch (Exception ex)
             {
@@ -113,7 +114,7 @@ namespace AK.Vault.Console
             return result;
         }
 
-        protected abstract bool ExecuteCommand(ICollection<Exception> exceptions);
+        protected abstract Task<bool> ExecuteCommand(ICollection<Exception> exceptions);
 
         protected virtual void WriteHeader() { }
 

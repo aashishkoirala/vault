@@ -21,6 +21,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AK.Vault.Console
 {
@@ -42,20 +43,20 @@ namespace AK.Vault.Console
         public override void AssignEncryptionKeyInput(EncryptionKeyInput encryptionKeyInput)
         {
             base.AssignEncryptionKeyInput(encryptionKeyInput);
-            _launcher = new Launcher(_fileEncryptor, _listGenerator, _console, VaultName, _logger);
+            _launcher = new Launcher(_fileEncryptor, _listGenerator, _console, _logger);
         }
 
         protected override bool PromptAfterEnd => false;
 
         protected override bool PromptBeforeStart => false;
 
-        protected override bool ExecuteCommand(ICollection<Exception> exceptions)
+        protected override async Task<bool> ExecuteCommand(ICollection<Exception> exceptions)
         {
             try
             {
                 _console.Blank();
                 _console.Info("Launching application...");
-                _launcher.Run();
+                await _launcher.Run(VaultName);
                 return true;
             }
             catch (Exception ex)

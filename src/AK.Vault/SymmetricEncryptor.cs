@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 
 namespace AK.Vault
 {
@@ -47,15 +48,15 @@ namespace AK.Vault
         /// <param name="parameters">Encryption parameters.</param>
         /// <param name="inStream">Stream to read plain data from.</param>
         /// <param name="outStream">Stream to write encrypted data to.</param>
-        public void Encrypt(SymmetricEncryptionParameters parameters, Stream inStream, Stream outStream)
+        public async Task Encrypt(SymmetricEncryptionParameters parameters, Stream inStream, Stream outStream)
         {
             using (var algorithm = AlgorithmMap[parameters.Algorithm]())
             {
-                var iv = GenerateIv(outStream, algorithm.IV.Length);
+                var iv = await GenerateIv(outStream, algorithm.IV.Length);
 
                 using (var cryptor = algorithm.CreateEncryptor(parameters.Key, iv))
                 using (var cryptoStream = new CryptoStream(outStream, cryptor, CryptoStreamMode.Write))
-                    inStream.CopyTo(cryptoStream);
+                    await inStream.CopyToAsync(cryptoStream);
             }
         }
 
@@ -65,15 +66,15 @@ namespace AK.Vault
         /// <param name="parameters">Decryption parameters.</param>
         /// <param name="inStream">Stream to read encrypted data from.</param>
         /// <param name="outStream">Stream to write decrypted data to.</param>
-        public void Decrypt(SymmetricEncryptionParameters parameters, Stream inStream, Stream outStream)
+        public async Task Decrypt(SymmetricEncryptionParameters parameters, Stream inStream, Stream outStream)
         {
             using (var algorithm = AlgorithmMap[parameters.Algorithm]())
             {
-                var iv = ExtractIv(inStream, algorithm.IV.Length);
+                var iv = await ExtractIv(inStream, algorithm.IV.Length);
 
                 using (var cryptor = algorithm.CreateDecryptor(parameters.Key, iv))
                 using (var cryptoStream = new CryptoStream(outStream, cryptor, CryptoStreamMode.Write))
-                    inStream.CopyTo(cryptoStream);
+                    await inStream.CopyToAsync(cryptoStream);
             }
         }
 
@@ -83,11 +84,11 @@ namespace AK.Vault
         /// <param name="parameters">Encryption parameters.</param>
         /// <param name="inData">Plain data to encrypt.</param>
         /// <returns>Encrypted data.</returns>
-        public byte[] Encrypt(SymmetricEncryptionParameters parameters, byte[] inData)
+        public async Task<byte[]> Encrypt(SymmetricEncryptionParameters parameters, byte[] inData)
         {
             using (MemoryStream inDataStream = new MemoryStream(inData), outDataStream = new MemoryStream())
             {
-                Encrypt(parameters, inDataStream, outDataStream);
+                await Encrypt(parameters, inDataStream, outDataStream);
 
                 return outDataStream.ToArray();
             }
@@ -99,29 +100,29 @@ namespace AK.Vault
         /// <param name="parameters">Decryption parameters.</param>
         /// <param name="inData">Encrypted data to decrypt.</param>
         /// <returns>Decrypted data.</returns>
-        public byte[] Decrypt(SymmetricEncryptionParameters parameters, byte[] inData)
+        public async Task<byte[]> Decrypt(SymmetricEncryptionParameters parameters, byte[] inData)
         {
             using (MemoryStream inDataStream = new MemoryStream(inData), outDataStream = new MemoryStream())
             {
-                Decrypt(parameters, inDataStream, outDataStream);
+                await Decrypt(parameters, inDataStream, outDataStream);
 
                 return outDataStream.ToArray();
             }
         }
 
-        private static byte[] GenerateIv(Stream outStream, int length)
+        private static async Task<byte[]> GenerateIv(Stream outStream, int length)
         {
             var iv = new byte[length];
             using (var generator = RandomNumberGenerator.Create())
                 generator.GetNonZeroBytes(iv);
-            outStream.Write(iv, 0, iv.Length);
+            await outStream.WriteAsync(iv, 0, iv.Length);
             return iv;
         }
 
-        private static byte[] ExtractIv(Stream inStream, int length)
+        private static async Task<byte[]> ExtractIv(Stream inStream, int length)
         {
             var iv = new byte[length];
-            inStream.Read(iv, 0, iv.Length);
+            await inStream.ReadAsync(iv, 0, iv.Length);
             return iv;
         }
     }
