@@ -18,12 +18,13 @@
  * 
  *******************************************************************************************************************************/
 
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 
 namespace AK.Vault.Console
 {
@@ -41,10 +42,10 @@ namespace AK.Vault.Console
 
         public Action<string> FileFound { get; set; }
 
-        public FindCommand(IConfiguration configuration, FileNameManager fileNameManager, 
-            IOptionsMonitor<VaultOptions> vaultOptionsMonitor, 
-            FileEncryptorFactory fileEncryptorFactory, ConsoleWriter console) : 
-            base(fileEncryptorFactory, console)
+        public FindCommand(IConfiguration configuration, FileNameManager fileNameManager,
+            IOptionsMonitor<VaultOptions> vaultOptionsMonitor,
+            FileEncryptorFactory fileEncryptorFactory, ConsoleWriter console,
+            ILogger<FindCommand> logger) : base(fileEncryptorFactory, console, logger)
         {
             _configuration = configuration;
             _fileNameManager = fileNameManager;

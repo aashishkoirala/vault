@@ -32,6 +32,7 @@ namespace AK.Vault.Console
                 .AddSingleton<VaultSelector>()
                 .AddSingleton<CommandExecutor>()
                 .AddSingleton<EncryptionKeyEvaluator>()
+                .AddSingleton<ConsoleWriter>()
                 .AddSingleton(applicationState)
                 .AddHostedService<CommandExecutor>()
                 .AddCommands();

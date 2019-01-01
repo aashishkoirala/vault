@@ -21,6 +21,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -46,6 +47,7 @@ namespace AK.Vault.Console
                         .Configure<VaultOptions>(o => c.Configuration.Bind(o))
                         .AddVaultServices()
                         .AddVaultConsoleServices(applicationState))
+                        .ConfigureLogging(l => l.AddFile("Logs/Vault_{Date}.log"))
                     .RunConsoleAsync(cancellationTokenSource.Token);
 
                 return applicationState.ReturnCode;

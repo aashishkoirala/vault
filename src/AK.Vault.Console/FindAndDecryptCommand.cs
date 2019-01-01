@@ -18,6 +18,7 @@
  * 
  *******************************************************************************************************************************/
 
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -40,9 +41,10 @@ namespace AK.Vault.Console
         private EncryptionKeyInput _localEncryptionKeyInput;
 
         public FindAndDecryptCommand(FileEncryptorFactory fileEncryptorFactory,
-            IOptionsMonitor<VaultOptions> vaultOptionsMonitor, 
+            IOptionsMonitor<VaultOptions> vaultOptionsMonitor,
             FindCommand findCommand, DecryptCommand decryptCommand,
-            ConsoleWriter console) : base(fileEncryptorFactory, console)
+            ConsoleWriter console, ILogger<FindAndDecryptCommand> logger) :
+            base(fileEncryptorFactory, console, logger)
         {
             _findCommand = findCommand;
             _decryptCommand = decryptCommand;

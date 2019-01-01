@@ -18,6 +18,7 @@
  * 
  *******************************************************************************************************************************/
 
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -36,7 +37,8 @@ namespace AK.Vault.Console
 
         public EncryptCommand(FileEncryptorFactory fileEncryptorFactory,
             IOptionsMonitor<VaultOptions> vaultOptionsMonitor,
-            ConsoleWriter console) : base(fileEncryptorFactory, console)
+            ConsoleWriter console,
+            ILogger<EncryptCommand> logger) : base(fileEncryptorFactory, console, logger)
         {
             var options = vaultOptionsMonitor.CurrentValue;
             if (string.IsNullOrWhiteSpace(options.Target)) return;

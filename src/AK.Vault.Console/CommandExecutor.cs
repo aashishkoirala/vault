@@ -19,6 +19,7 @@
  *******************************************************************************************************************************/
 
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Reflection;
@@ -40,12 +41,14 @@ namespace AK.Vault.Console
         private readonly VaultOptions _vaultOptions;
         private readonly Func<string, ICommand> _commandFunc;
         private readonly ConsoleWriter _console;
+        private readonly ILogger _logger;
 
         public CommandExecutor(ApplicationState applicationState,
             VaultSelector vaultSelector, EncryptionKeyEvaluator encryptionKeyEvaluator,
             IOptionsMonitor<VaultOptions> vaultOptionsMonitor,
             Func<string, ICommand> commandFunc,
-            ConsoleWriter console)
+            ConsoleWriter console,
+            ILogger<CommandExecutor> logger)
         {
             _applicationState = applicationState;
             _vaultSelector = vaultSelector;
@@ -53,6 +56,7 @@ namespace AK.Vault.Console
             _vaultOptions = vaultOptionsMonitor.CurrentValue;
             _commandFunc = commandFunc;
             _console = console;
+            _logger = logger;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -73,7 +77,8 @@ namespace AK.Vault.Console
             }
             catch (Exception ex)
             {
-                _console.Error($"Unexpected error:{Environment.NewLine}{ex}{Environment.NewLine}");
+                _logger.LogError(ex, "Unexpected error during command parse/execution.");
+                _console.Error("There was an unexpected error, please see the logs for details.");
                 _applicationState.ReturnCode = 1;
             }
             _applicationState.CancellationTokenSource.Cancel();
@@ -115,7 +120,8 @@ namespace AK.Vault.Console
             }
             catch (Exception ex)
             {
-                _console.Error($"Error parsing command: {ex.Message}");
+                _logger.LogError(ex, $"Error while parsing command.");
+                _console.Error($"Error parsing command, please see logs for details.");
                 return null;
             }
         }

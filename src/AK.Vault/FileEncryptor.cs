@@ -42,8 +42,12 @@ namespace AK.Vault
         private readonly BlockingCollection<Message> _messages = new BlockingCollection<Message>();
         private readonly string _vaultName;
 
-        internal FileEncryptor(SymmetricEncryptor symmetricEncryptor, EncryptionKeyGenerator encryptionKeyGenerator, 
-            VaultOptions vaultOptions, FileNameManager fileNameManager, EncryptionKeyInput encryptionKeyInput, string vaultName)
+        internal FileEncryptor(SymmetricEncryptor symmetricEncryptor,
+            EncryptionKeyGenerator encryptionKeyGenerator,
+            VaultOptions vaultOptions,
+            FileNameManager fileNameManager,
+            EncryptionKeyInput encryptionKeyInput,
+            string vaultName)
         {
             var key = encryptionKeyGenerator.Generate(encryptionKeyInput);
 
@@ -116,21 +120,21 @@ namespace AK.Vault
             {
                 return Directory
                     .GetFiles(filePattern, "*.*", SearchOption.AllDirectories)
-                    .Select(x => new FileEncryptionResult {UnencryptedFilePath = x})
+                    .Select(x => new FileEncryptionResult { UnencryptedFilePath = x })
                     .ToArray();
             }
 
-            if (File.Exists(filePattern)) return new[] {new FileEncryptionResult {UnencryptedFilePath = filePattern}};
+            if (File.Exists(filePattern)) return new[] { new FileEncryptionResult { UnencryptedFilePath = filePattern } };
 
             var pattern = Path.GetFileName(filePattern);
             var directory = Path.GetDirectoryName(filePattern);
 
             if (pattern == null || directory == null)
-                throw new Exception("Unexpected error - cannot get file or directory name from file pattern.");
+                throw new Exception($"Unexpected error - cannot get file or directory name from file pattern {filePattern}.");
 
             return Directory
                 .GetFiles(directory, pattern, SearchOption.AllDirectories)
-                .Select(x => new FileEncryptionResult {UnencryptedFilePath = x})
+                .Select(x => new FileEncryptionResult { UnencryptedFilePath = x })
                 .ToArray();
         }
 
@@ -141,7 +145,7 @@ namespace AK.Vault
 
             return Directory
                 .GetFiles(encryptedFileLocation, filePattern, SearchOption.TopDirectoryOnly)
-                .Select(x => new FileEncryptionResult {EncryptedFilePath = x})
+                .Select(x => new FileEncryptionResult { EncryptedFilePath = x })
                 .ToArray();
         }
 
@@ -158,7 +162,7 @@ namespace AK.Vault
                     cancellationTokenSource.Cancel();
 
                     Info();
-                    
+
                     // ReSharper disable once MethodSupportsCancellation
                     //
                     task.Wait();
@@ -194,7 +198,7 @@ namespace AK.Vault
 
                 if (File.Exists(encryptionResult.EncryptedFilePath)) File.Delete(encryptionResult.EncryptedFilePath);
 
-                Info("[{0}]: Encrypting...", encryptionResult.UnencryptedFilePath);
+                Info($"[{encryptionResult.UnencryptedFilePath}]: Encrypting...");
                 using (FileStream
                     inFile = File.OpenRead(encryptionResult.UnencryptedFilePath),
                     outFile = File.OpenWrite(encryptionResult.EncryptedFilePath))
@@ -204,12 +208,12 @@ namespace AK.Vault
                 }
 
                 encryptionResult.IsDone = true;
-                Info("[{0}]: Encrypted.", encryptionResult.UnencryptedFilePath);
+                Info($"[{encryptionResult.UnencryptedFilePath}]: Encrypted.");
             }
             catch (Exception ex)
             {
                 encryptionResult.Exception = ex;
-                Error("[{0}]: Could not encrypt.");
+                Error($"[{encryptionResult.UnencryptedFilePath}]: Could not encrypt.");
             }
         }
 
@@ -219,15 +223,18 @@ namespace AK.Vault
             {
                 var sourceFileName = encryptionResult.EncryptedFilePath;
 
-                Info("[{0}]: Deciphering name...", sourceFileName);
+                Info($"[{sourceFileName}]: Deciphering name...");
                 using (var inFile = File.OpenRead(sourceFileName))
                 {
                     encryptionResult.UnencryptedFilePath = _fileNameManager.ReadOriginalFileNameFromStream(inFile);
-                    Info("[{0}]: Decrypting...", encryptionResult.UnencryptedFilePath);
+                    Info($"[{encryptionResult.UnencryptedFilePath}]: Decrypting...");
 
                     var targetDirectory = Path.GetDirectoryName(encryptionResult.UnencryptedFilePath);
                     if (targetDirectory == null)
-                        throw new Exception("Unexpected error - cannot get directory name from file path.");
+                    {
+                        throw new Exception("Unexpected error - cannot get directory name from " +
+                            $"file path {encryptionResult.UnencryptedFilePath}.");
+                    }
 
                     if (Path.IsPathRooted(targetDirectory))
                     {
@@ -249,23 +256,17 @@ namespace AK.Vault
                 }
 
                 encryptionResult.IsDone = true;
-                Info("[{0}]: Decrypted.", encryptionResult.UnencryptedFilePath);
+                Info($"[{encryptionResult.UnencryptedFilePath}]: Decrypted.");
             }
             catch (Exception ex)
             {
                 encryptionResult.Exception = ex;
-                Error("[{0}]: Could not decrypt.", encryptionResult.EncryptedFilePath);
+                Error($"[{encryptionResult.EncryptedFilePath}]: Could not decrypt.");
             }
         }
 
-        private void Info(string message = null, params object[] args)
-        {
-            _messages.Add(message == null ? Message.Empty : new Message(string.Format(message, args)));
-        }
+        private void Info(string message = null) => _messages.Add(message == null ? Message.Empty : new Message(message));
 
-        private void Error(string message, params object[] args)
-        {
-            _messages.Add(message == null ? Message.Empty : new Message(string.Format(message, args), true));
-        }
+        private void Error(string message) => _messages.Add(message == null ? Message.Empty : new Message(message, true));
     }
 }

@@ -18,6 +18,7 @@
  * 
  *******************************************************************************************************************************/
 
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 
@@ -34,8 +35,10 @@ namespace AK.Vault.Console
 
         private readonly ListGenerator _listGenerator;
 
-        public ListCommand(ListGenerator listGenerator, FileEncryptorFactory fileEncryptorFactory,
-            ConsoleWriter console) : base(fileEncryptorFactory, console, true) => _listGenerator = listGenerator;
+        public ListCommand(ListGenerator listGenerator, 
+            FileEncryptorFactory fileEncryptorFactory,
+            ConsoleWriter console, ILogger<ListCommand> logger) : 
+            base(fileEncryptorFactory, console, logger, true) => _listGenerator = listGenerator;
 
         protected override bool ExecuteCommand(ICollection<Exception> exceptions)
         {

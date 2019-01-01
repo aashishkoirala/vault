@@ -18,11 +18,12 @@
  * 
  *******************************************************************************************************************************/
 
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Extensions.Options;
 
 namespace AK.Vault.Console
 {
@@ -40,7 +41,8 @@ namespace AK.Vault.Console
 
         public ReportCommand(IOptionsMonitor<VaultOptions> vaultOptionsMonitor,
             FileNameManager fileNameManager, FileEncryptorFactory fileEncryptorFactory,
-            ConsoleWriter console) : base(fileEncryptorFactory, console, true)
+            ConsoleWriter console, ILogger<ReportCommand> logger) :
+            base(fileEncryptorFactory, console, logger, true)
         {
             _vaultOptions = vaultOptionsMonitor.CurrentValue;
             _fileNameManager = fileNameManager;

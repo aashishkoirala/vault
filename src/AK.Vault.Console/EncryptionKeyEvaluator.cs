@@ -18,6 +18,7 @@
  * 
  *******************************************************************************************************************************/
 
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.IO;
@@ -33,12 +34,14 @@ namespace AK.Vault.Console
     {
         private readonly VaultOptions _vaultOptions;
         private readonly ConsoleWriter _console;
+        private readonly ILogger _logger;
 
         public EncryptionKeyEvaluator(IOptionsMonitor<VaultOptions> vaultOptionsMonitor,
-            ConsoleWriter console)
+            ConsoleWriter console, ILogger<EncryptionKeyEvaluator> logger)
         {
             _vaultOptions = vaultOptionsMonitor.CurrentValue;
             _console = console;
+            _logger = logger;
         }
 
         /// <summary>
@@ -69,7 +72,8 @@ namespace AK.Vault.Console
                 }
                 catch (Exception ex)
                 {
-                    _console.Error($"Invalid key file: {ex.Message}.");
+                    _logger.LogError(ex, $"Error opening key file {_vaultOptions.KeyFile}.");
+                    _console.Error("Could not open key file, please see logs for details.");
                     return null;
                 }
             }

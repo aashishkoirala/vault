@@ -18,6 +18,7 @@
  * 
  *******************************************************************************************************************************/
 
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -42,6 +43,7 @@ namespace AK.Vault.Console
         private static readonly char[] MenuKeyChars = 
             new[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E' };
         private readonly ConsoleWriter _console;
+        private readonly ILogger _logger;
 
         private IDictionary<char, SelectableMenuItem> _selectableMenu;
         private FolderEntry _currentFolder;
@@ -50,12 +52,13 @@ namespace AK.Vault.Console
         private bool _isRunning = true;
 
         public Launcher(FileEncryptor fileEncryptor, ListGenerator listGenerator, 
-            ConsoleWriter console, string vaultName)
+            ConsoleWriter console, string vaultName, ILogger logger)
         {
             _fileEncryptor = fileEncryptor;
             _currentFolder = listGenerator.Generate(vaultName);
             _executableMenu = BuildExecutableMenu();
             _console = console;
+            _logger = logger;
         }
 
         public void Run()
@@ -229,7 +232,8 @@ namespace AK.Vault.Console
                 exception = ex;
             }
 
-            _console.Error($"There was a problem decrypting: {exception.Message}");
+            _logger.LogError(exception, $"Error while decrypting {_selectedMenuItem.FileEntry.OriginalFullPath}");
+            _console.Error($"There was a problem decrypting: {exception.Message} Please see the logs for more details.");
             _console.Blank();
             _console.Info("Press any key to continue.");
             _console.ReadKey();
@@ -253,7 +257,19 @@ namespace AK.Vault.Console
 
             _console.Info($"{doneCount} of {results.Length} files decrypted successfully.");
 
-            return doneCount > 0 ? Path.GetDirectoryName(results.First(x => x.IsDone).UnencryptedFilePath) : null;
+            foreach (var (name, ex) in results.Where(x => !x.IsDone).Select(x => (x.EncryptedFilePath, x.Exception)))
+            {
+                _logger.LogError(ex, $"Error while decrypting {name}.");
+            }
+            if (doneCount > 0) return Path.GetDirectoryName(results.First(x => x.IsDone).UnencryptedFilePath);
+
+            _console.Error(doneCount == 0 ? "Nothing could be decrypted." : "Some of the files could not be decrypted.");
+            _console.Error("Please see the logs for more details.");
+            _console.Blank();
+            _console.Info("Press any key to continue.");
+            _console.ReadKey();
+
+            return null;
         }
 
         private void LaunchPath(string path)

@@ -18,13 +18,12 @@
  * 
  *******************************************************************************************************************************/
 
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 
 namespace AK.Vault.Console
 {
@@ -37,6 +36,7 @@ namespace AK.Vault.Console
         private readonly FileEncryptorFactory _fileEncryptorFactory;
         protected FileEncryptor _fileEncryptor;
         protected ConsoleWriter _console;
+        protected ILogger _logger;
 
         protected virtual bool PromptBeforeStart => true;
 
@@ -46,11 +46,12 @@ namespace AK.Vault.Console
 
         public virtual string VaultName { get; set; }
 
-        protected CommandBase(FileEncryptorFactory fileEncryptorFactory, 
-            ConsoleWriter console, bool isValid = false)
+        protected CommandBase(FileEncryptorFactory fileEncryptorFactory,
+            ConsoleWriter console, ILogger logger, bool isValid = false)
         {
             _fileEncryptorFactory = fileEncryptorFactory;
             _console = console;
+            _logger = logger;
             IsValid = isValid;
         }
 
@@ -59,8 +60,16 @@ namespace AK.Vault.Console
             _fileEncryptor = _fileEncryptorFactory.Create(encryptionKeyInput, VaultName);
             _fileEncryptor.UpdateMessageAction = message =>
             {
-                if (message.IsError) _console.Error(message.Description);
-                else _console.Info(message.Description);
+                if (message.IsError)
+                {
+                    _console.Error(message.Description);
+                    _logger.LogError(message.Description);
+                }
+                else
+                {
+                    _console.Info(message.Description);
+                    _logger.LogInformation(message.Description);
+                }
             };
         }
 
@@ -90,18 +99,14 @@ namespace AK.Vault.Console
 
             if (exceptions.Any())
             {
-                var errorLog = Path.Combine(Path.GetDirectoryName(
-                    Assembly.GetExecutingAssembly().Location) ?? string.Empty, "Error.log");
+                var typeName = GetType().Name;
 
-                var dashes = $"{new string('-', 50)}{Environment.NewLine}";
-                File.WriteAllText(errorLog, dashes);
-                foreach (var ex in exceptions)
+                foreach (var (ex, ix) in exceptions.Select((ex, ix) => (ex, ix)))
                 {
-                    File.AppendAllText(errorLog, ex.ToString());
-                    File.AppendAllText(errorLog, dashes);
+                    _logger.LogError(ex, $"Error {ix + 1} while executing {typeName}.");
                 }
 
-                _console.Error($"There were errors. See {errorLog} for details.");
+                _console.Error($"There were errors. Please see the logs for details.");
             }
 
             if (PromptAfterEnd) PromptContinue();
@@ -128,9 +133,9 @@ namespace AK.Vault.Console
         protected void PromptContinue(string prompt = "Press ENTER to continue.")
         {
             if (_console.IsRedirected) return;
-                        
+
             _console.Info(prompt);
-            while (_console.ReadKey().Key != ConsoleKey.Enter) {}
+            while (_console.ReadKey().Key != ConsoleKey.Enter) { }
         }
     }
 }

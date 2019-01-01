@@ -18,6 +18,7 @@
  * 
  *******************************************************************************************************************************/
 
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 
@@ -33,14 +34,15 @@ namespace AK.Vault.Console
         private Launcher _launcher;
         private readonly ListGenerator _listGenerator;
 
-        public LaunchCommand(ListGenerator listGenerator, 
-            FileEncryptorFactory fileEncryptorFactory, ConsoleWriter console) :
-            base(fileEncryptorFactory, console, true) => _listGenerator = listGenerator;
+        public LaunchCommand(ListGenerator listGenerator,
+            FileEncryptorFactory fileEncryptorFactory,
+            ConsoleWriter console, ILogger<LaunchCommand> logger) :
+            base(fileEncryptorFactory, console, logger, true) => _listGenerator = listGenerator;
 
         public override void AssignEncryptionKeyInput(EncryptionKeyInput encryptionKeyInput)
         {
             base.AssignEncryptionKeyInput(encryptionKeyInput);
-            _launcher = new Launcher(_fileEncryptor, _listGenerator, _console, VaultName);
+            _launcher = new Launcher(_fileEncryptor, _listGenerator, _console, VaultName, _logger);
         }
 
         protected override bool PromptAfterEnd => false;
