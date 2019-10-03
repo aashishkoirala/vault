@@ -1,0 +1,75 @@
+name: vault
+version: "0.1.0"
+author: Aashish Koirala
+about: Encrypts and decrypts files
+subcommands:
+- encrypt:
+    about: Encrypts the given file
+    args:
+    - in:
+        short: i
+        long: in
+        help: The path to the file to encrypt
+        value_name: IN-FILE-PATH
+        takes_value: true
+    - out:
+        short: o
+        long: out
+        help: The path to the target encrypted file
+        value_name: OUT-FILE-PATH
+        takes_value: true
+    - key:
+        short: k
+        long: key
+        help: The path to the encryption key file
+        value_name: KEY-FILE-PATH
+        takes_value: true
+    - phrase:
+        short: p
+        long: phrase
+        help: The passphrase to use to generate the key on the fly
+        value_name: PASSPHRASE
+        takes_value: true
+- decrypt:
+    about: Decrypts the given file
+    args:
+    - in:
+        short: i
+        long: in
+        help: The path to the file to decrypt
+        value_name: IN-FILE-PATH
+        takes_value: true
+    - out:
+        short: o
+        long: out
+        help: The path to the target decrypted file
+        value_name: OUT-FILE-PATH
+        takes_value: true
+    - key:
+        short: k
+        long: key
+        help: The path to the decryption key file
+        value_name: KEY-FILE-PATH
+        takes_value: true
+    - phrase:
+        short: p
+        long: phrase
+        help: The passphrase to use to generate the key on the fly
+        value_name: PASSPHRASE
+        takes_value: true
+- genkey:
+    about: Generates a new encryption key and writes it to the specified file
+    args:
+    - key:
+        short: k
+        long: key
+        help: The file path to write the key to
+        value_name: KEY-FILE-PATH
+        takes_value: true
+    - phrase:
+        short: p
+        long: phrase
+        help: The passphrase to use to generate the key, if omitted, a random key is generated
+        value_name: PASSPHRASE
+        takes_value: true
+        required: false

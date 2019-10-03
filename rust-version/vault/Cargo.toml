@@ -1,0 +1,11 @@
+[package]
+name = "vault"
+version = "0.1.0"
+authors = ["Aashish Koirala <aashishkoirala@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+rand = "0.3.18"
+rust-crypto = "^0.2"
+term = "*"
+clap = {version = "~2.27.0", features = ["yaml"]}
